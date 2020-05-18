@@ -1,0 +1,37 @@
+version: '3'
+services:
+  drone-server:
+    image: drone/drone:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /data/volumes/drone:/var/lib/drone/
+    environment:
+      - DRONE_OPEN=true
+      - DRONE_DEBUG=true
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_GITLAB_SERVER=http://git.kevin197011.com
+      - DRONE_GITLAB_CLIENT_ID=${GITLAB-TOKEN}
+      - DRONE_GITLAB_CLIENT_SECRET=${GITLAB-TOKEN}
+      - DRONE_GITLAB=true
+      - DRONE_SERVER_HOST=drone.kevin197011.com
+      - DRONE_SERVER_PROTO=http
+      - DRONE_DATABASE_DATASOURCE=/data/drone.sqlite
+      - DRONE_DATABASE_DRIVER=sqlite3
+      - DRONE_RPC_SECRET=MyDroneSecreToken
+      - DRONE_SECRET=MyDroneSecreToken
+
+  drone-agent:
+    image: drone/agent:latest
+    depends_on:
+      - drone-server
+    environment:
+      - DRONE_RPC_SERVER=http://drone-server
+      - DRONE_RPC_SECRET=MyDroneSecreToken
+      - DRONE_DEBUG=true
+      - DOCKER_HOST=tcp://docker-bind:2375
+
+  docker-bind:
+     image: docker:dind
+     privileged: true

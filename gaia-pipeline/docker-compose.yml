@@ -1,0 +1,8 @@
+version: "3"
+services:
+  gaia:
+    ports:
+      - "8888:8080"
+    volumes:
+      - "$PWD/data:/data"
+    image: "gaiapipeline/gaia:latest"

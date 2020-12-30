@@ -17,7 +17,7 @@ services:
       - DRONE_GITLAB=true
       - DRONE_SERVER_HOST=drone.kevin197011.com
       - DRONE_SERVER_PROTO=http
-      - DRONE_DATABASE_DATASOURCE=/data/drone.sqlite
+      - DRONE_DATABASE_DATASOURCE=/data/drone/drone.sqlite
       - DRONE_DATABASE_DRIVER=sqlite3
       - DRONE_RPC_SECRET=MyDroneSecreToken
       - DRONE_SECRET=MyDroneSecreToken

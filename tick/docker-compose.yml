@@ -2,8 +2,8 @@ version: '3'
 services:
   influxdb:
     image: "influxdb:latest"
-    hostname: "monitoring_influxdb"
-    container_name: monitoring_influxdb
+    # hostname: "monitoring_influxdb"
+    # container_name: monitoring_influxdb
     ports: 
       - "8086:8086"
     volumes:
@@ -12,20 +12,28 @@ services:
       - tick-network
   chronograf:
     image: "chronograf:latest"
-    hostname: "monitoring_chronograf"
-    container_name: monitoring_chronograf
+    # hostname: "monitoring_chronograf"
+    # container_name: monitoring_chronograf
+    environment:
+      INFLUXDB_URL: http://influxdb:8086
+      KAPACITOR_URL: http://kapacitor:9092
     ports: 
       - "8888:8888"
     volumes: 
       - "chronograf-data:/var/lib/chronograf"
+    links:
+      - influxdb
+      - kapacitor
     networks:
       - tick-network
   telegraf:
     image: "telegraf:latest"
-    hostname: "monitoring_telegraf"
-    container_name: monitoring_telegraf
+    # hostname: "monitoring_telegraf"
+    # container_name: monitoring_telegraf
     volumes:
       - "telegraf-data:/etc/telegraf/"
+    links:
+      - influxdb
     networks:
       - tick-network
   kapacitor:
@@ -34,8 +42,11 @@ services:
     container_name: "monitoring_kapacitor"
     volumes: 
       - "kapacitor-data:/var/lib/kapacitor"
-    environment: 
-      - "KAPACITOR_INFLUXDB_0_URLS_0=http://monitoring_influxdb:8086"
+    environment:
+      KAPACITOR_HOSTNAME: kapacitor
+      KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086
+    links:
+      - influxdb
     ports:
       - "9092:9092"
     networks:

@@ -38,8 +38,8 @@ services:
       - tick-network
   kapacitor:
     image: "kapacitor:latest"
-    hostname: "monitoring_kapacitor"
-    container_name: "monitoring_kapacitor"
+    # hostname: "monitoring_kapacitor"
+    # container_name: "monitoring_kapacitor"
     volumes: 
       - "kapacitor-data:/var/lib/kapacitor"
     environment:

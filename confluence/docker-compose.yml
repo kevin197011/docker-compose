@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  confluence:
+    image: atlassian/confluence-server:latest
+    restart: always
+    expose:
+      - 8090
+    volumes:
+      - ./confluence/:/var/atlassian/application-data/confluence
+    networks:
+      - default
+      - confluence
+    environment:
+      - CATALINA_CONNECTOR_PROXYNAME=confluence.example.com
+      - CATALINA_CONNECTOR_PROXYPORT=443
+      - CATALINA_CONNECTOR_SCHEME=https
+      - CATALINA_CONNECTOR_SECURE=true
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    expose:
+      - 5432
+    volumes:
+      - ./data/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=confluence
+      - POSTGRES_DB=confluence
+      - POSTGRES_PASSWORD=123456789
+    networks:
+      - confluence
+
+networks:
+  confluence:
+    name: confluence

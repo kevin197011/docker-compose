@@ -10,15 +10,13 @@ services:
       - DB_HOST=postgres:5432
       - DB_NAME=gitea
       - DB_USER=gitea
-      - DB_PASSWD=gitea
+      - DB_PASSWD=gitea@passwd
     ports:
       - "3000:3000"
       - "2222:22"
     volumes:
-      - /data/volumes/gitea:/data
+      - gitea-data:/data
     restart: always
-    networks:
-      - gitea
     depends_on:
       - postgres
 
@@ -28,13 +26,11 @@ services:
     environment:
       POSTGRES_DB: gitea
       POSTGRES_USER: gitea
-      POSTGRES_PASSWORD: gitea
+      POSTGRES_PASSWORD: gitea@passwd
     volumes:
-      - /data/volumes/postgresql:/var/lib/postgresql/data
+      - gitea-postgres-data:/var/lib/postgresql/data
     restart: always
-    networks:
-      - gitea
 
-networks:
-  gitea:
-    external: false
+volumes:
+  gitea-data:
+  gitea-postgres-data:

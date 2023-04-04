@@ -2,6 +2,8 @@
 # 
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
+# 9039403607fd01a65fd3372608f185b4420e564b
+
 
 export HOSTNAME=$(hostname)
 export DRONE_VERSION=latest

@@ -80,4 +80,5 @@ services:
 
 networks:
   cicd_net:
-    name: cicd_net
+    external:
+      name: cicd_net

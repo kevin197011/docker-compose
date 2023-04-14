@@ -1,37 +1,55 @@
-version: '3'
+version: "3"
+
 services:
   drone-server:
     image: drone/drone:latest
+    container_name: drone-server
+    networks:
+      - drone_net
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
+      - '9000:9000'
     volumes:
-      - /data/volumes/drone:/var/lib/drone/
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/drone/data:/var/lib/drone:rw
     environment:
-      - DRONE_OPEN=true
-      - DRONE_DEBUG=true
-      - DRONE_GIT_ALWAYS_AUTH=false
-      - DRONE_GITLAB_SERVER=http://git.kevin197011.com
-      - DRONE_GITLAB_CLIENT_ID=${GITLAB-TOKEN}
-      - DRONE_GITLAB_CLIENT_SECRET=${GITLAB-TOKEN}
-      - DRONE_GITLAB=true
-      - DRONE_SERVER_HOST=drone.kevin197011.com
+      - DRONE_AGENTS_ENABLED=true
+      - DRONE_GITLAB_SERVER=https://gitlab.com
+      - DRONE_GITLAB_CLIENT_ID=xxxxxx
+      - DRONE_GITLAB_CLIENT_SECRET=xxxxxx
+      - DRONE_RPC_SECRET=1d8ae98e6fd61c91b2e7dad6775ca771
+      - DRONE_SERVER_HOST=${domain ip}
       - DRONE_SERVER_PROTO=http
-      - DRONE_DATABASE_DATASOURCE=/data/drone/drone.sqlite
+      - DRONE_OPEN=true
+      - DRONE_DATABASE_DATASOURCE=/data/drone.sqlite
       - DRONE_DATABASE_DRIVER=sqlite3
-      - DRONE_RPC_SECRET=MyDroneSecreToken
-      - DRONE_SECRET=MyDroneSecreToken
+      - DRONE_DEBUG=true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_TRACE=true
+      - DRONE_USER_CREATE=username:root,admin:true
+      - TZ=Asia/Hong_Kong
+    restart: always
 
-  drone-agent:
-    image: drone/agent:latest
+  drone-runner:
+    image: drone/drone-runner-docker:latest
+    container_name: drone-runner
+    networks:
+      - drone_net
     depends_on:
       - drone-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - DRONE_RPC_SERVER=http://drone-server
-      - DRONE_RPC_SECRET=MyDroneSecreToken
+      - DRONE_RPC_HOST=${drone ip}
+      - DRONE_RPC_SECRET=1d8ae98e6fd61c91b2e7dad6775ca771
+      - DRONE_RPC_PROTO=http
+      - DRONE_RUNNER_CAPACITY=5
       - DRONE_DEBUG=true
-      - DOCKER_HOST=tcp://docker-bind:2375
-
-  docker-bind:
-     image: docker:dind
-     privileged: true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_TRACE=true
+      - TZ=Asia/Hong_Kong
+    restart: always
+networks:
+  drone_net:
+    name: drone_net

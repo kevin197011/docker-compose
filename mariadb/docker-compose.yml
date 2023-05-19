@@ -1,17 +1,23 @@
 version: '3'
 services:
   mariadb:
-    image: mariadb:10.5.5
+    image: mariadb:5.5.64-trusty
     container_name: mariadb
     restart: always
     environment:
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: "123456"
-      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_PASSWORD: "Wmdl8m>PMW!>"
+      MYSQL_ROOT_PASSWORD: "Wmdl8m>PMW!>"
       TZ: "Asia/Shanghai"
     ports:
       - "3306:3306"
     volumes:
-      - ./mariadb/data:/var/lib/mysql
-      - ./mariadb/log:/var/log/mysql
-      # - ./mariadb/conf/my.cnf:/etc/mysql/my.cnf
+      - /data/mariadb/data:/var/lib/mysql
+      - /data/mariadb/log:/var/log/mysql:rw
+      - ./conf/mariadb.cnf:/etc/mysql/conf.d/mariadb.cnf
+    networks:
+      - mariadb
+
+networks:
+  mariadb:
+    name: mariadb

@@ -12,3 +12,9 @@ services:
     volumes:
       - ./redis/data:/data
       - ./redis/conf/redis.conf:/etc/redis/redis.conf
+    networks:
+      - redis
+
+networks:
+  redis:
+    name: redis

@@ -3,15 +3,15 @@ version: '3.8'
 services:
   redis:
     container_name: redis
-    image: redis:7.0.8
+    image: redis:7.0.9
     restart: always
     ports:
       - 6379:6379
     privileged: true
-    command: redis-server /etc/redis/redis.conf --appendonly yes
+    command: /usr/local/bin/redis-server /etc/redis/redis.conf --appendonly yes
     volumes:
-      - ./redis/data:/data
-      - ./redis/conf/redis.conf:/etc/redis/redis.conf
+      - ./data:/data
+      - ./conf/redis.conf:/etc/redis/redis.conf:rw
     networks:
       - redis
 

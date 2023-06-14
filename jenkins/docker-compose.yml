@@ -16,4 +16,4 @@ services:
       - jenkins
 networks:
   jenkins:
-    external: false
+    name: jenkins

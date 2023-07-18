@@ -3,6 +3,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.11
     container_name: elasticsearch
+    restart: always
     environment:
       - node.name=elasticsearch
       - cluster.name=elk-cluster
@@ -23,6 +24,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.11
     container_name: kibana
+    restart: always
     ports:
       - 5601:5601
     environment:

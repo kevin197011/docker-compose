@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  yearning:
+    image: yeelabs/yearning:latest
+    container_name: yearning
+    restart: always
+    environment:
+      MYSQL_USER: yearning
+      MYSQL_PASSWORD: 3cc72f70146ea286
+      MYSQL_ADDR: mysql
+      MYSQL_DB: yearning
+      SECRET_KEY: dbcjqheup123qjsuwsm
+      IS_DOCKER: is_docker
+    volumes:
+      - ./data/yearning:/var/lib/yearning/data
+    ports:
+      - 8000:8000
+    command: /bin/bash -c "./Yearning install && ./Yearning run"
+    depends_on:
+      - mysql
+    networks:
+      - yearning
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 3cc72f70146ea286
+      MYSQL_DATABASE: yearning
+      MYSQL_USER: yearning
+      MYSQL_PASSWORD: 3cc72f70146ea286
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - yearning
+
+networks:
+  yearning:
+    name: yearning

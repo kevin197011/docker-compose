@@ -9,12 +9,16 @@ services:
       - POSTGRESQL_USERNAME=bn_airflow
       - POSTGRESQL_PASSWORD=bitnami1
       - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - airflow
   redis:
     image: docker.io/bitnami/redis:6.0-debian-10
     volumes:
       - 'redis_data:/bitnami'
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - airflow
   airflow-scheduler:
     image: docker.io/bitnami/airflow-scheduler:1-debian-10
     environment:
@@ -24,6 +28,8 @@ services:
       - AIRFLOW_EXECUTOR=CeleryExecutor
     volumes:
       - airflow_scheduler_data:/bitnami
+    networks:
+      - airflow
   airflow-worker:
     image: docker.io/bitnami/airflow-worker:1-debian-10
     environment:
@@ -33,6 +39,8 @@ services:
       - AIRFLOW_EXECUTOR=CeleryExecutor
     volumes:
       - airflow_worker_data:/bitnami
+    networks:
+      - airflow
   airflow:
     image: docker.io/bitnami/airflow:1-debian-10
     environment:
@@ -44,6 +52,8 @@ services:
       - '8080:8080'
     volumes:
       - airflow_data:/bitnami
+    networks:
+      - airflow
 volumes:
   airflow_scheduler_data:
     driver: local
@@ -55,3 +65,6 @@ volumes:
     driver: local
   redis_data:
     driver: local
+networks:
+  airflow:
+    name: airflow

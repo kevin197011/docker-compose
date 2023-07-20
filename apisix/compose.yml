@@ -28,4 +28,4 @@ services:
       - apisix
 networks:
   apisix:
-    external: false
+    name: apisix

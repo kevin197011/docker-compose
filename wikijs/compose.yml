@@ -10,7 +10,7 @@ services:
       driver: "none"
     restart: unless-stopped
     volumes:
-      - wikijs-postgres-data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
   wiki:
     image: requarks/wiki:2
     depends_on:
@@ -25,5 +25,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:3000"
-volumes:
-  wikijs-postgres-data:
+    networks:
+      - wiki
+networks:
+  wiki:
+    name: wiki

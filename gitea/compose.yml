@@ -19,7 +19,6 @@ services:
     restart: always
     depends_on:
       - postgres
-
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -30,7 +29,6 @@ services:
     volumes:
       - gitea-postgres-data:/var/lib/postgresql/data
     restart: always
-
 volumes:
   gitea-data:
   gitea-postgres-data:

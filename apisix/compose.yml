@@ -14,7 +14,6 @@ services:
       - 9443:9443
     networks:
       - apisix
-      
   etcd:
     image: bitnami/etcd:latest
     restart: always
@@ -27,7 +26,6 @@ services:
       - 2379:2379
     networks:
       - apisix
-
 networks:
   apisix:
     external: false

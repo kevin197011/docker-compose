@@ -13,6 +13,6 @@ services:
       - '/data/gitlab/data:/var/opt/gitlab'
     environment:
       TZ: 'Asia/Shanghai'
-      GITLAB_OMNIBUS_CONFIG: |
+      GITLAB_OMNIBUS_CONFIG: |-
         external_url 'http://gitlab.devops.com'
         gitlab_rails['gitlab_shell_ssh_port'] = 2222

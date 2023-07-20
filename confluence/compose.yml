@@ -1,5 +1,4 @@
 version: "3"
-
 services:
   confluence:
     image: atlassian/confluence-server:latest
@@ -16,7 +15,6 @@ services:
       - CATALINA_CONNECTOR_PROXYPORT=443
       - CATALINA_CONNECTOR_SCHEME=https
       - CATALINA_CONNECTOR_SECURE=true
-
   postgres:
     image: postgres:latest
     restart: always
@@ -30,7 +28,6 @@ services:
       - POSTGRES_PASSWORD=123456789
     networks:
       - confluence
-
 networks:
   confluence:
     name: confluence

@@ -1,5 +1,6 @@
 version: "3"
-
+# https://github.com/cookieY/Yearning
+# http://next.yearning.io/
 services:
   yearning:
     image: yeelabs/yearning:latest
@@ -21,7 +22,6 @@ services:
       - mysql
     networks:
       - yearning
-
   mysql:
     image: mysql:5.7
     container_name: mysql
@@ -37,7 +37,6 @@ services:
       - ./data/mysql:/var/lib/mysql
     networks:
       - yearning
-
 networks:
   yearning:
     name: yearning

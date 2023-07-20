@@ -17,7 +17,6 @@ services:
       - ./conf/mariadb.cnf:/etc/mysql/conf.d/mariadb.cnf
     networks:
       - mariadb
-
 networks:
   mariadb:
     name: mariadb

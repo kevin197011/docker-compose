@@ -9,6 +9,7 @@ require 'erb'
 task default: %w[push]
 
 task :push do
+  sh 'yamlfmt .'
   sh 'git add .'
   sh 'git commit -m "Update."'
   sh 'git push'

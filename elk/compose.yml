@@ -1,5 +1,4 @@
 version: "3"
-
 # /etc/sysctl.conf
 # vm.max_map_count=262144
 services:
@@ -23,7 +22,6 @@ services:
       - 9200:9200
     networks:
       - elk
-
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.11
     container_name: kibana
@@ -37,7 +35,6 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     networks:
       - elk
-
 networks:
   elk:
     name: elk

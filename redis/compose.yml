@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   redis:
     container_name: redis
@@ -14,7 +13,6 @@ services:
       - ./conf/redis.conf:/etc/redis/redis.conf:rw
     networks:
       - redis
-
 networks:
   redis:
     name: redis

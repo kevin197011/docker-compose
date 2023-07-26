@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   rabbitmq:
     image: rabbitmq:3.11.13-management
@@ -12,7 +12,7 @@ services:
       - RABBITMQ_DEFAULT_USER=root
       - RABBITMQ_DEFAULT_PASS=1qaz2wsx
     volumes:
-      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ./data/rabbitmq:/var/lib/rabbitmq
     networks:
       - rabbitmq
 networks:

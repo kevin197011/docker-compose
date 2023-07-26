@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   gitea:
     image: gitea/gitea:latest
@@ -15,10 +15,12 @@ services:
       - "3000:3000"
       - "2222:22"
     volumes:
-      - gitea-data:/data
+      - ./data/gitea:/data
     restart: always
     depends_on:
       - postgres
+    networks:
+      - gitea_net
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -27,8 +29,10 @@ services:
       POSTGRES_USER: gitea
       POSTGRES_PASSWORD: gitea@passwd
     volumes:
-      - gitea-postgres-data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     restart: always
-volumes:
-  gitea-data:
-  gitea-postgres-data:
+    networks:
+      - gitea_net
+networks:
+  gitea_net:
+    name: gitea_net

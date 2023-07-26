@@ -23,7 +23,7 @@ services:
     networks:
       - cicd_net
     volumes:
-      - /data/gitea/data:/data
+      - ./data/gitea:/data
   drone:
     container_name: drone
     image: drone/drone:${DRONE_VERSION:-1.6.4}
@@ -50,7 +50,7 @@ services:
       - cicd_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/drone/data:/data
+      - ./data/drone:/data
   drone-runner:
     container_name: drone-runner
     image: drone/drone-runner-docker:${DRONE_RUNNER_VERSION:-1}

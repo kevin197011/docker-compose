@@ -4,7 +4,7 @@ services:
     image: apache/apisix:latest
     restart: always
     volumes:
-      - /data/logs/apisix:/usr/local/apisix/logs
+      - ./logs/apisix:/usr/local/apisix/logs
       - ./config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
     depends_on:
       - etcd
@@ -18,7 +18,7 @@ services:
     image: bitnami/etcd:latest
     restart: always
     volumes:
-      - /data/volumes/etcd:/opt/bitnami/etcd/data
+      - ./data/etcd:/opt/bitnami/etcd/data
     environment:
       ALLOW_NONE_AUTHENTICATION: "yes"
       ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379

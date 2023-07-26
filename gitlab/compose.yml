@@ -8,9 +8,9 @@ services:
       - '80:80'
       - '2222:22'
     volumes:
-      - '/data/gitlab/config:/etc/gitlab'
-      - '/data/gitlab/logs:/var/log/gitlab'
-      - '/data/gitlab/data:/var/opt/gitlab'
+      - ./config/gitlab:/etc/gitlab
+      - ./log/gitlab:/var/log/gitlab
+      - ./data/gitlab:/var/opt/gitlab
     environment:
       TZ: 'Asia/Shanghai'
       GITLAB_OMNIBUS_CONFIG: |-

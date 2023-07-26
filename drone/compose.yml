@@ -11,7 +11,7 @@ services:
       - '9000:9000'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/drone/data:/var/lib/drone:rw
+      - ./data/drone:/var/lib/drone:rw
     environment:
       - DRONE_AGENTS_ENABLED=true
       - DRONE_GITLAB_SERVER=https://gitlab.com

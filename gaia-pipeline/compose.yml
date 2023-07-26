@@ -4,5 +4,5 @@ services:
     ports:
       - "8888:8080"
     volumes:
-      - "./data:/data"
+      - "./data/gaia:/data"
     image: "gaiapipeline/gaia:latest"

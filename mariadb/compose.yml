@@ -12,9 +12,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /data/mariadb/data:/var/lib/mysql
-      - /data/mariadb/log:/var/log/mysql:rw
-      - ./conf/mariadb.cnf:/etc/mysql/conf.d/mariadb.cnf
+      - ./data/mariadb:/var/lib/mysql
+      - ./log/mariadb:/var/log/mysql:rw
+      - ./config/mariadb/mariadb.cnf:/etc/mysql/conf.d/mariadb.cnf
     networks:
       - mariadb
 networks:

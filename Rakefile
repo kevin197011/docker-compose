@@ -12,13 +12,14 @@ task default: %w[push]
 
 task :push do
   Rake::Task[:fmt].invoke
-  sh 'git add .'
-  sh "git commit -m 'Update #{Time.now.strftime('%Y-%m-%d %H:%M:%S')}.'"
-  sh 'git push origin main'
+  system 'git add .'
+  system "git commit -m 'Update #{Time.now.strftime('%Y-%m-%d %H:%M:%S')}.'"
+  system 'git pull'
+  system 'git push'
 end
 
 task :fmt do
-  sh 'yamlfmt .'
+  system 'yamlfmt .'
 end
 
 task :new do

@@ -1,4 +1,3 @@
-version: "3"
 services:
   drone-server:
     image: drone/drone:latest

@@ -1,4 +1,3 @@
-version: '3'
 services:
   postgresql:
     image: 'docker.io/bitnami/postgresql:10-debian-10'

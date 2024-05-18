@@ -1,34 +1,26 @@
 services:
-  confluence:
-    image: atlassian/confluence-server:latest
-    restart: always
-    expose:
-      - 8090
-    volumes:
-      - ./data/confluence:/var/atlassian/application-data/confluence
-    networks:
-      - default
-      - confluence
-    environment:
-      - CATALINA_CONNECTOR_PROXYNAME=confluence.example.com
-      - CATALINA_CONNECTOR_PROXYPORT=443
-      - CATALINA_CONNECTOR_SCHEME=https
-      - CATALINA_CONNECTOR_SECURE=true
-    depends_on:
-      - postgres
   postgres:
     image: postgres:latest
-    restart: always
-    expose:
-      - 5432
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+    container_name: jira-postgres
     environment:
-      - POSTGRES_USER=confluence
-      - POSTGRES_DB=confluence
-      - POSTGRES_PASSWORD=123456789
-    networks:
-      - confluence
-networks:
-  confluence:
-    name: confluence
+      POSTGRES_DB: jira
+      POSTGRES_USER: jira
+      POSTGRES_PASSWORD: jirapassword
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+    restart: always
+  jira:
+    image: atlassian/jira-software:latest
+    container_name: jira
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      ATL_JDBC_URL: jdbc:postgresql://postgres:5432/jira
+      ATL_JDBC_USER: jira
+      ATL_JDBC_PASSWORD: jirapassword
+      ATL_DB_TYPE: postgres
+    volumes:
+      - ./data/jira-data:/var/atlassian/application-data/jira
+    restart: always

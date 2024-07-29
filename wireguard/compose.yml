@@ -1,0 +1,22 @@
+---
+services:
+  wg-access-server:
+    image: place1/wg-access-server
+    container_name: wg-access-server
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./data:/data
+    #   - "./config.yaml:/config.yaml" # if you have a custom config file
+    environment:
+      - "WG_ADMIN_USERNAME=admin"
+      - "WG_ADMIN_PASSWORD=xxxxxx"
+      # Get WG_WIREGUARD_PRIVATE_KEY
+      # docker run -it place1/wg-access-server wg genkey
+      - "WG_WIREGUARD_PRIVATE_KEY=kD8MB1gL9+bJlwz2KZrsWrP9hfpqQbOpv0lSARzKwXI="
+    ports:
+      # http://localhost:8000
+      - "8000:8000/tcp"
+      - "51820:51820/udp"
+    devices:
+      - "/dev/net/tun:/dev/net/tun"

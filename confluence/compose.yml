@@ -13,7 +13,6 @@ services:
       - CATALINA_CONNECTOR_SECURE=true
     depends_on:
       - postgres
-    restart: always
   postgres:
     image: postgres:latest
     restart: always
@@ -23,4 +22,3 @@ services:
       - POSTGRES_USER=confluence
       - POSTGRES_DB=confluence
       - POSTGRES_PASSWORD=123456789
-    restart: always

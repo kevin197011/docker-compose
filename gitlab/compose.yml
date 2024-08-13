@@ -9,7 +9,7 @@ services:
 
   postgresql:
     restart: always
-    image: postgresql:latest
+    image: postgres:latest
     volumes:
       - ./data/postgresql:/var/lib/postgresql:Z
     environment:
@@ -27,9 +27,9 @@ services:
       - "8443:443"
       - "2222:22"
     volumes:
-      - ./gitlab/config:/etc/gitlab
-      - ./gitlab/log:/var/log/gitlab
-      - ./gitlab/data:/var/opt/gitlab
+      - ./data/gitlab/config:/etc/gitlab
+      - ./data/gitlab/log:/var/log/gitlab
+      - ./data/gitlab/data:/var/opt/gitlab
     environment:
       TZ: "Asia/Shanghai"
       GITLAB_OMNIBUS_CONFIG: |-

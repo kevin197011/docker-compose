@@ -5,7 +5,8 @@ global:
 alerting:
   alertmanagers:
   - static_configs:
-    - targets: []
+    - targets: 
+      - alertmanager:9093
     scheme: http
     timeout: 10s
     api_version: v1
@@ -25,22 +26,22 @@ scrape_configs:
   - targets: 
     - node-exporter:9100
 
-- job_name: 'node-tcp'
+- job_name: 'devops-tcp'
   metrics_path: /probe
   params:
     module: [tcp_connect]
   static_configs:
   - targets:
       - google.com:443
-      - baidu.com:22
+      - baidu.com:443
     labels:
       module: tcp
       env: prod
-      project: g16
+      project: devops
   relabel_configs:
     - source_labels: [__address__]
       target_label: __param_target
     - source_labels: [__param_target]
       target_label: instance
     - target_label: __address__
-      replacement: 10.1.1.110:9115
+      replacement: blackbox-exporter:9115

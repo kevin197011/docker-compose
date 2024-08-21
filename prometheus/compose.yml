@@ -57,6 +57,7 @@ services:
 
   blackbox-exporter:
     image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
     restart: always
     ports:
       - 9115:9115

@@ -1,0 +1,66 @@
+---
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    user: "0:0"
+    environment:
+      - env=dev
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "0:0"
+    ports:
+      - 3000:3000
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./config/grafana:/etc/grafana/provisioning/datasources
+      - ./data/grafana:/var/lib/grafana:rw
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    restart: always
+    ports:
+      - 9115:9115
+    command:
+      - "--config.file=/etc/blackbox-exporter/blackbox.yml"
+    volumes:
+      - "./config/blackbox/blackbox.yml:/etc/blackbox-exporter/blackbox.yml"

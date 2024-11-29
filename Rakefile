@@ -27,5 +27,5 @@ task :new do
   @app_name = $stdin.gets.strip
   Dir.mkdir @app_name
   File.open("#{@app_name}/compose.yml", 'w') { |f| f.write(ERB.new(File.open('compose.yml.erb').read).result(binding)) }
-  puts "docker compose #{@app_name} created."
+  Rails.logger.debug { "docker compose #{@app_name} created." }
 end

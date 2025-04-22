@@ -1,0 +1,21 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped  # 推荐增加重启策略
+    user: root
+    privileged: true 
+    ports:
+      - "5678:5678"          # 暴露 Web UI 和 API 端口
+    volumes:
+      - ./n8n_data:/home/node/.n8n  # 持久化配置和工作流数据
+    #environment:
+      # 可选环境变量（根据需要添加）
+      # - N8N_BASIC_AUTH_ACTIVE=true
+      # - N8N_BASIC_AUTH_USER=user
+      # - N8N_BASIC_AUTH_PASSWORD=secret
+    networks:
+      - n8n_network         # 可选自定义网络
+networks:
+  n8n_network:
+    driver: bridge

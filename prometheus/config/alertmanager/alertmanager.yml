@@ -4,19 +4,16 @@ route:
   group_interval: 120s
   repeat_interval: 10m
   receiver: "default"
-
   # routes:
   #   - matchers:
   #       - job=~".*"
   #     receiver: "default"
-
 receivers:
   # UAT
   - name: "default"
     webhook_configs:
       - url: "https://webhook.devps.io/alert_webhook?chat_id=xxxxxx"
         send_resolved: true
-
 inhibit_rules:
   - source_match:
       severity: "critical"

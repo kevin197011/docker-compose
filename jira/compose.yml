@@ -15,7 +15,6 @@ services:
       - ./data/jira:/var/jira
       # - ./server.xml:/opt/confluence/conf/server.xml
     restart: always
-
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -25,16 +24,7 @@ services:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_USER=jira
       - MYSQL_PASSWORD=123456
-    command:
-      [
-        "mysqld",
-        "--character-set-server=utf8mb4",
-        "--collation-server=utf8mb4_bin",
-        "--transaction-isolation=READ-COMMITTED",
-        "--innodb_log_file_size=256M",
-        "--max_allowed_packet=256M",
-        "--log_bin_trust_function_creators=1",
-      ]
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_bin", "--transaction-isolation=READ-COMMITTED", "--innodb_log_file_size=256M", "--max_allowed_packet=256M", "--log_bin_trust_function_creators=1"]
     volumes:
       - ./data/mysql:/var/lib/mysql
     restart: always

@@ -6,7 +6,6 @@ services:
       - --loglevel warning
     volumes:
       - ./data/redis:/data:Z
-
   postgresql:
     restart: always
     image: postgres:latest
@@ -17,7 +16,6 @@ services:
       - DB_PASS=password
       - DB_NAME=gitlabhq_production
       - DB_EXTENSION=pg_trgm,btree_gist
-
   gitlab:
     image: "gitlab/gitlab-ce:latest"
     restart: always
@@ -49,7 +47,6 @@ services:
     depends_on:
       - redis
       - postgresql
-
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -62,4 +59,3 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - gitlab
-

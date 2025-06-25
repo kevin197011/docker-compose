@@ -94,6 +94,8 @@ services:
     volumes:
       - ./data/lion:/opt/lion/data
       - ./logs/lion:/opt/lion/logs
+    ports:
+      - "8081:8081"
     depends_on:
       - core
     networks:
@@ -107,6 +109,7 @@ services:
     volumes:
       - ./data/core/static:/opt/lina/static
       - ./data/core/media:/opt/lina/media
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - "80:80"
     depends_on:
@@ -128,6 +131,7 @@ services:
       - ./data/magnus:/opt/magnus/data
       - ./logs/magnus:/opt/magnus/logs
     ports:
+      - "8088:8088"
       - "30000-30100:30000-30100"
     depends_on:
       - core

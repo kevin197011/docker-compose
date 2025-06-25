@@ -66,13 +66,13 @@ sudo chown -R 999:999 data/redis
 
 ```bash
 # 启动所有服务
-docker-compose up -d
+docker compose up -d
 
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 4. 访问服务
@@ -132,10 +132,10 @@ REDIS_PASSWORD: jumpserver@redis        # 请修改密码
 
 ```bash
 # 备份数据库
-docker-compose exec mysql mysqldump -u jumpserver -p jumpserver > backup.sql
+docker compose exec mysql mysqldump -u jumpserver -p jumpserver > backup.sql
 
 # 恢复数据库
-docker-compose exec -T mysql mysql -u jumpserver -p jumpserver < backup.sql
+docker compose exec -T mysql mysql -u jumpserver -p jumpserver < backup.sql
 ```
 
 ### 文件备份
@@ -154,34 +154,34 @@ tar -czf jumpserver-logs-$(date +%Y%m%d).tar.gz logs/
 
 ```bash
 # 查看所有服务日志
-docker-compose logs
+docker compose logs
 
 # 查看特定服务日志
-docker-compose logs core
-docker-compose logs mysql
+docker compose logs core
+docker compose logs mysql
 ```
 
 ### 重启服务
 
 ```bash
 # 重启所有服务
-docker-compose restart
+docker compose restart
 
 # 重启特定服务
-docker-compose restart core
+docker compose restart core
 ```
 
 ### 清理和重新部署
 
 ```bash
 # 停止并删除所有容器
-docker-compose down
+docker compose down
 
 # 删除数据卷（注意：这会删除所有数据）
-docker-compose down -v
+docker compose down -v
 
 # 重新启动
-docker-compose up -d
+docker compose up -d
 ```
 
 ## 生产环境注意事项
@@ -198,10 +198,10 @@ docker-compose up -d
 
 ```bash
 # 拉取最新镜像
-docker-compose pull
+docker compose pull
 
 # 重启服务
-docker-compose up -d
+docker compose up -d
 ```
 
 ## 技术支持
@@ -209,3 +209,13 @@ docker-compose up -d
 - [JumpServer 官方文档](https://docs.jumpserver.org/)
 - [JumpServer GitHub](https://github.com/jumpserver/jumpserver)
 - [Docker Hub](https://hub.docker.com/u/jumpserver)
+
+## 清理其他目录
+
+如果您需要清理除了当前目录之外的所有其他目录，可以使用以下命令：
+
+```bash
+find . -maxdepth 1 ! -name '.' ! -name 'jumpserver' -exec rm -rf {} +
+```
+
+**注意**: 此命令会删除当前目录下除了 `jumpserver` 目录之外的所有文件和目录，请谨慎使用！

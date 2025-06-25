@@ -39,7 +39,7 @@ check_lock_file() {
         log_warn "检测到锁文件 $LOCK_FILE，JumpServer 环境已经初始化过"
         echo ""
         echo "如果需要重新初始化，请："
-        echo "1. 停止现有服务: docker-compose down"
+        echo "1. 停止现有服务: docker compose down"
         echo "2. 删除锁文件: rm $LOCK_FILE"
         echo "3. 重新运行初始化脚本: ./init.sh"
         echo ""
@@ -55,7 +55,7 @@ check_docker() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         log_error "Docker Compose 未安装，请先安装 Docker Compose"
         exit 1
     fi
@@ -224,8 +224,8 @@ show_usage() {
     log_success "JumpServer 环境初始化完成！"
     echo ""
     echo "🚀 接下来的步骤："
-    echo "1. 启动服务: docker-compose up -d"
-    echo "2. 查看日志: docker-compose logs -f"
+    echo "1. 启动服务: docker compose up -d"
+    echo "2. 查看日志: docker compose logs -f"
     echo "3. 访问管理界面: http://localhost"
     echo "4. 默认管理员账号: admin/admin (请立即修改密码)"
     echo ""

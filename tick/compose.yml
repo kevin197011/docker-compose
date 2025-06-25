@@ -39,7 +39,7 @@ services:
     ports:
       - "9092:9092"
   # Define a service for using the influx CLI tool.
-  # docker-compose run influxdb-cli
+  # docker compose run influxdb-cli
   influxdb-cli:
     image: influxdb:latest
     entrypoint:
@@ -49,7 +49,7 @@ services:
     links:
       - influxdb
   # Define a service for using the kapacitor CLI tool.
-  # docker-compose run kapacitor-cli
+  # docker compose run kapacitor-cli
   kapacitor-cli:
     image: kapacitor:latest
     entrypoint: bash

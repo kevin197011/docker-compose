@@ -1,0 +1,139 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jumpserver_mysql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: jumpserver@root
+      MYSQL_DATABASE: jumpserver
+      MYSQL_USER: jumpserver
+      MYSQL_PASSWORD: jumpserver@passwd
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./config/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "3306:3306"
+    networks:
+      - jumpserver_net
+  redis:
+    image: redis:7-alpine
+    container_name: jumpserver_redis
+    restart: always
+    command: redis-server --requirepass jumpserver@redis
+    volumes:
+      - ./data/redis:/data
+      - ./config/redis/redis.conf:/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - jumpserver_net
+  core:
+    image: jumpserver/jms_core:latest
+    container_name: jumpserver_core
+    restart: always
+    environment:
+      SECRET_KEY: "B3f2w8P2PfxIAS7s4URrD9YmSbtqX4vXdPUL217kL9XPUOWrmy"
+      BOOTSTRAP_TOKEN: "7Q11Vz6R2J6BLAdO"
+      DEBUG: "false"
+      LOG_LEVEL: "ERROR"
+      DB_ENGINE: "mysql"
+      DB_HOST: "mysql"
+      DB_PORT: "3306"
+      DB_USER: "jumpserver"
+      DB_PASSWORD: "jumpserver@passwd"
+      DB_NAME: "jumpserver"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "jumpserver@redis"
+      SESSION_COOKIE_AGE: "86400"
+      SESSION_EXPIRE_AT_BROWSER_CLOSE: "true"
+    volumes:
+      - ./data/core/media:/opt/jumpserver/data/media
+      - ./data/core/static:/opt/jumpserver/data/static
+      - ./logs/core:/opt/jumpserver/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - jumpserver_net
+  koko:
+    image: jumpserver/jms_koko:latest
+    container_name: jumpserver_koko
+    restart: always
+    environment:
+      CORE_HOST: "http://core:8080"
+      BOOTSTRAP_TOKEN: "7Q11Vz6R2J6BLAdO"
+      LOG_LEVEL: "ERROR"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "jumpserver@redis"
+      SSHD_PORT: "2222"
+    volumes:
+      - ./data/koko:/opt/koko/data
+      - ./logs/koko:/opt/koko/logs
+    ports:
+      - "2222:2222"
+    depends_on:
+      - core
+    networks:
+      - jumpserver_net
+  lion:
+    image: jumpserver/jms_lion:latest
+    container_name: jumpserver_lion
+    restart: always
+    environment:
+      CORE_HOST: "http://core:8080"
+      BOOTSTRAP_TOKEN: "7Q11Vz6R2J6BLAdO"
+      LOG_LEVEL: "ERROR"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "jumpserver@redis"
+    volumes:
+      - ./data/lion:/opt/lion/data
+      - ./logs/lion:/opt/lion/logs
+    depends_on:
+      - core
+    networks:
+      - jumpserver_net
+  web:
+    image: jumpserver/jms_web:latest
+    container_name: jumpserver_web
+    restart: always
+    environment:
+      CORE_HOST: "http://core:8080"
+    volumes:
+      - ./data/core/static:/opt/lina/static
+      - ./data/core/media:/opt/lina/media
+    ports:
+      - "80:80"
+    depends_on:
+      - core
+    networks:
+      - jumpserver_net
+  magnus:
+    image: jumpserver/jms_magnus:latest
+    container_name: jumpserver_magnus
+    restart: always
+    environment:
+      CORE_HOST: "http://core:8080"
+      BOOTSTRAP_TOKEN: "7Q11Vz6R2J6BLAdO"
+      LOG_LEVEL: "ERROR"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "jumpserver@redis"
+    volumes:
+      - ./data/magnus:/opt/magnus/data
+      - ./logs/magnus:/opt/magnus/logs
+    ports:
+      - "30000-30100:30000-30100"
+    depends_on:
+      - core
+    networks:
+      - jumpserver_net
+networks:
+  jumpserver_net:
+    name: jumpserver_net
+    driver: bridge

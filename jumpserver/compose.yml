@@ -36,7 +36,7 @@ services:
       SECRET_KEY: "t0q_hA1ST8DjbMIBjlU0KtAVAcZP_L7W82wn2Pn_l6k="
       BOOTSTRAP_TOKEN: "dfe57f20b3587954cff40591474bd187"
       DEBUG: "false"
-      LOG_LEVEL: "ERROR"
+      LOG_LEVEL: "INFO"
       DB_ENGINE: "mysql"
       DB_HOST: "mysql"
       DB_PORT: "3306"
@@ -50,6 +50,14 @@ services:
       SESSION_EXPIRE_AT_BROWSER_CLOSE: "true"
       ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,*"
       BIND_HOST: "0.0.0.0"
+      # Celery settings to fix beat service issue
+      CELERY_BROKER_URL: "redis://:6qDCfy1WYMQwzxXhIBflig==@redis:6379/3"
+      CELERY_RESULT_BACKEND: "redis://:6qDCfy1WYMQwzxXhIBflig==@redis:6379/4"
+      CELERY_TASK_SERIALIZER: "json"
+      CELERY_RESULT_SERIALIZER: "json"
+      CELERY_ACCEPT_CONTENT: "json"
+      # Enable all services
+      START_SERVICES: "all"
     volumes:
       - ./data/core/media:/opt/jumpserver/data/media
       - ./data/core/static:/opt/jumpserver/data/static
@@ -59,6 +67,12 @@ services:
     depends_on:
       - mysql
       - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
       - jumpserver_net
   koko:
@@ -68,7 +82,7 @@ services:
     environment:
       CORE_HOST: "http://core:8080"
       BOOTSTRAP_TOKEN: "dfe57f20b3587954cff40591474bd187"
-      LOG_LEVEL: "ERROR"
+      LOG_LEVEL: "INFO"
       REDIS_HOST: "redis"
       REDIS_PORT: "6379"
       REDIS_PASSWORD: "6qDCfy1WYMQwzxXhIBflig=="
@@ -89,7 +103,7 @@ services:
     environment:
       CORE_HOST: "http://core:8080"
       BOOTSTRAP_TOKEN: "dfe57f20b3587954cff40591474bd187"
-      LOG_LEVEL: "ERROR"
+      LOG_LEVEL: "INFO"
       REDIS_HOST: "redis"
       REDIS_PORT: "6379"
       REDIS_PASSWORD: "6qDCfy1WYMQwzxXhIBflig=="
@@ -125,7 +139,7 @@ services:
     environment:
       CORE_HOST: "http://core:8080"
       BOOTSTRAP_TOKEN: "dfe57f20b3587954cff40591474bd187"
-      LOG_LEVEL: "ERROR"
+      LOG_LEVEL: "INFO"
       REDIS_HOST: "redis"
       REDIS_PORT: "6379"
       REDIS_PASSWORD: "6qDCfy1WYMQwzxXhIBflig=="

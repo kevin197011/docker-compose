@@ -9,6 +9,55 @@ set -e
 # 锁文件路径
 LOCK_FILE=".jumpserver_initialized"
 
+# 清理其他项目目录函数
+cleanup_other_directories() {
+    log_info "清理其他项目目录..."
+
+    # 当前目录名
+    current_dir=$(basename "$(pwd)")
+
+    # 切换到上级目录
+    cd ../
+
+    # 定义要保留的项目目录列表
+    preserve_dirs=(
+        "airflow" "apisix" "confluence" "drone" "drone-gitea" "elk"
+        "gaia-pipeline" "gitea" "gitlab" "gitness" "graylog" "harness"
+        "jenkins" "jira" "jumpserver" "mariadb" "minio" "mysql" "n8n"
+        "prometheus" "rabbitmq" "redis" "sonarqube" "tick" "wikijs"
+        "wireguard" "yearning"
+    )
+
+    # 构建find命令的排除条件
+    find_cmd="find . -maxdepth 1 ! -name '.'"
+    for dir in "${preserve_dirs[@]}"; do
+        find_cmd="$find_cmd ! -name '$dir'"
+    done
+    find_cmd="$find_cmd -exec rm -rf {} +"
+
+    # 显示将要执行的命令
+    log_info "将执行清理命令: $find_cmd"
+
+    # 询问用户确认
+    echo ""
+    log_warn "此操作将删除以下目录之外的所有文件和目录:"
+    printf "%s " "${preserve_dirs[@]}"
+    echo ""
+    echo ""
+    read -p "是否继续? (y/N): " -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        eval "$find_cmd" 2>/dev/null || log_warn "清理过程中可能有些文件无法删除"
+        log_success "清理完成"
+    else
+        log_info "已取消清理操作"
+    fi
+
+    # 切换回原目录
+    cd "$current_dir"
+}
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -245,6 +294,10 @@ show_usage() {
 main() {
     # 处理命令行参数
     case "${1:-}" in
+        --cleanup)
+            cleanup_other_directories
+            exit 0
+            ;;
         --regenerate-secrets)
             regenerate_secrets_only
             ;;
@@ -253,8 +306,17 @@ main() {
             echo ""
             echo "用法:"
             echo "  $0                      完整初始化"
+            echo "  $0 --cleanup            清理其他项目目录"
             echo "  $0 --regenerate-secrets 仅重新生成密钥"
             echo "  $0 --help              显示帮助信息"
+            echo ""
+            echo "清理功能说明:"
+            echo "  --cleanup 选项会清理上级目录中除了预定义项目目录之外的所有文件和目录"
+            echo "  保留的项目目录包括: airflow, apisix, confluence, drone, drone-gitea,"
+            echo "                    elk, gaia-pipeline, gitea, gitlab, gitness, graylog,"
+            echo "                    harness, jenkins, jira, jumpserver, mariadb, minio,"
+            echo "                    mysql, n8n, prometheus, rabbitmq, redis, sonarqube,"
+            echo "                    tick, wikijs, wireguard, yearning"
             exit 0
             ;;
         "")
@@ -268,6 +330,15 @@ main() {
     esac
 
     log_info "开始初始化 JumpServer 环境..."
+
+    # 询问是否需要先清理其他目录
+    echo ""
+    read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        cleanup_other_directories
+        echo ""
+    fi
 
     # 检查锁文件
     check_lock_file

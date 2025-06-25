@@ -48,7 +48,7 @@ services:
       REDIS_PASSWORD: "6qDCfy1WYMQwzxXhIBflig=="
       SESSION_COOKIE_AGE: "86400"
       SESSION_EXPIRE_AT_BROWSER_CLOSE: "true"
-      ALLOWED_HOSTS: "*"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,*"
       BIND_HOST: "0.0.0.0"
     volumes:
       - ./data/core/media:/opt/jumpserver/data/media

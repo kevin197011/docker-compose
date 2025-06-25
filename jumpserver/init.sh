@@ -6,10 +6,14 @@
 
 set -e
 
+# 锁文件路径
+LOCK_FILE=".jumpserver_initialized"
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 日志函数
@@ -23,6 +27,25 @@ log_warn() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+log_success() {
+    echo -e "${BLUE}[SUCCESS]${NC} $1"
+}
+
+# 检查是否已经初始化
+check_lock_file() {
+    if [ -f "$LOCK_FILE" ]; then
+        log_warn "检测到锁文件 $LOCK_FILE，JumpServer 环境已经初始化过"
+        echo ""
+        echo "如果需要重新初始化，请："
+        echo "1. 停止现有服务: docker-compose down"
+        echo "2. 删除锁文件: rm $LOCK_FILE"
+        echo "3. 重新运行初始化脚本: ./init.sh"
+        echo ""
+        log_info "如果只需要重新生成密钥，请使用: ./init.sh --regenerate-secrets"
+        exit 0
+    fi
 }
 
 # 检查Docker是否安装
@@ -79,18 +102,84 @@ set_permissions() {
     log_info "权限设置完成"
 }
 
-# 生成随机密钥
-generate_secrets() {
-    log_info "生成安全密钥建议..."
+# 生成随机密钥并自动应用到配置文件
+generate_and_apply_secrets() {
+    log_info "生成安全密钥并自动应用到配置文件..."
 
-    echo "请将以下随机生成的密钥替换到 compose.yml 文件中："
+        # 生成随机密钥（避免包含特殊字符）
+    SECRET_KEY=$(openssl rand -base64 32 | tr -d '\n' | tr '/' '_' | tr '+' '-')
+    BOOTSTRAP_TOKEN=$(openssl rand -hex 16)
+    MYSQL_ROOT_PASSWORD=$(openssl rand -base64 16 | tr -d '\n' | tr '/' '_' | tr '+' '-')
+    MYSQL_PASSWORD=$(openssl rand -base64 16 | tr -d '\n' | tr '/' '_' | tr '+' '-')
+    REDIS_PASSWORD=$(openssl rand -base64 16 | tr -d '\n' | tr '/' '_' | tr '+' '-')
+
+    log_info "生成的密钥信息："
+    echo "SECRET_KEY: $SECRET_KEY"
+    echo "BOOTSTRAP_TOKEN: $BOOTSTRAP_TOKEN"
+    echo "MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD"
+    echo "MYSQL_PASSWORD: $MYSQL_PASSWORD"
+    echo "REDIS_PASSWORD: $REDIS_PASSWORD"
     echo ""
-    echo "SECRET_KEY: \"$(openssl rand -base64 32 | tr -d '\n')\""
-    echo "BOOTSTRAP_TOKEN: \"$(openssl rand -hex 16)\""
-    echo "MYSQL_ROOT_PASSWORD: \"$(openssl rand -base64 16 | tr -d '\n')\""
-    echo "MYSQL_PASSWORD: \"$(openssl rand -base64 16 | tr -d '\n')\""
-    echo "REDIS_PASSWORD: \"$(openssl rand -base64 16 | tr -d '\n')\""
-    echo ""
+
+    # 更新 compose.yml 文件 (使用 | 作为分隔符避免 / 字符冲突)
+    log_info "更新 compose.yml 文件中的密钥..."
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s|SECRET_KEY: \".*\"|SECRET_KEY: \"$SECRET_KEY\"|" compose.yml
+        sed -i '' "s|BOOTSTRAP_TOKEN: \".*\"|BOOTSTRAP_TOKEN: \"$BOOTSTRAP_TOKEN\"|" compose.yml
+        sed -i '' "s|MYSQL_ROOT_PASSWORD: .*|MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD|" compose.yml
+        sed -i '' "s|MYSQL_PASSWORD: .*|MYSQL_PASSWORD: $MYSQL_PASSWORD|" compose.yml
+        sed -i '' "s|DB_PASSWORD: \".*\"|DB_PASSWORD: \"$MYSQL_PASSWORD\"|" compose.yml
+        sed -i '' "s|REDIS_PASSWORD: \".*\"|REDIS_PASSWORD: \"$REDIS_PASSWORD\"|" compose.yml
+        sed -i '' "s|--requirepass .*|--requirepass $REDIS_PASSWORD|" compose.yml
+    else
+        # Linux
+        sed -i "s|SECRET_KEY: \".*\"|SECRET_KEY: \"$SECRET_KEY\"|" compose.yml
+        sed -i "s|BOOTSTRAP_TOKEN: \".*\"|BOOTSTRAP_TOKEN: \"$BOOTSTRAP_TOKEN\"|" compose.yml
+        sed -i "s|MYSQL_ROOT_PASSWORD: .*|MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD|" compose.yml
+        sed -i "s|MYSQL_PASSWORD: .*|MYSQL_PASSWORD: $MYSQL_PASSWORD|" compose.yml
+        sed -i "s|DB_PASSWORD: \".*\"|DB_PASSWORD: \"$MYSQL_PASSWORD\"|" compose.yml
+        sed -i "s|REDIS_PASSWORD: \".*\"|REDIS_PASSWORD: \"$REDIS_PASSWORD\"|" compose.yml
+        sed -i "s|--requirepass .*|--requirepass $REDIS_PASSWORD|" compose.yml
+    fi
+
+    # 更新 Redis 配置文件
+    log_info "更新 Redis 配置文件中的密码..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|^requirepass .*|requirepass $REDIS_PASSWORD|" config/redis/redis.conf
+    else
+        sed -i "s|^requirepass .*|requirepass $REDIS_PASSWORD|" config/redis/redis.conf
+    fi
+
+    # 保存密钥到文件
+    cat > .jumpserver_secrets << EOF
+# JumpServer 生成的密钥信息
+# 生成时间: $(date)
+
+SECRET_KEY=$SECRET_KEY
+BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN
+MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+MYSQL_PASSWORD=$MYSQL_PASSWORD
+REDIS_PASSWORD=$REDIS_PASSWORD
+EOF
+
+    log_success "密钥已成功生成并应用到配置文件"
+    log_info "密钥信息已保存到 .jumpserver_secrets 文件中"
+}
+
+# 仅重新生成密钥（用于 --regenerate-secrets 选项）
+regenerate_secrets_only() {
+    log_info "重新生成密钥..."
+
+    if [ ! -f "compose.yml" ]; then
+        log_error "compose.yml 文件不存在，请先运行完整初始化"
+        exit 1
+    fi
+
+    generate_and_apply_secrets
+    log_success "密钥重新生成完成！"
+    exit 0
 }
 
 # 检查端口占用
@@ -114,56 +203,85 @@ check_ports() {
     fi
 }
 
-# 创建环境文件
-create_env_file() {
-    if [ ! -f .env ]; then
-        log_info "创建环境配置文件..."
-        cat > .env << EOF
-# JumpServer 环境配置
-COMPOSE_PROJECT_NAME=jumpserver
 
-# 时区设置
-TZ=Asia/Shanghai
 
-# 网络设置
-JUMPSERVER_NETWORK=jumpserver_net
+# 创建锁文件
+create_lock_file() {
+    cat > "$LOCK_FILE" << EOF
+# JumpServer 初始化锁文件
+# 创建时间: $(date)
+# 该文件表示 JumpServer 环境已经初始化完成
+# 删除此文件可以重新运行初始化脚本
 
-# 版本标签
-JUMPSERVER_VERSION=latest
+INITIALIZED=true
+INIT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
 EOF
-        log_info ".env 文件创建完成"
-    else
-        log_info ".env 文件已存在，跳过创建"
-    fi
+    log_info "创建锁文件: $LOCK_FILE"
 }
 
 # 显示使用说明
 show_usage() {
-    log_info "初始化完成！"
+    log_success "JumpServer 环境初始化完成！"
     echo ""
-    echo "接下来的步骤："
-    echo "1. 如需要，请修改 compose.yml 中的密码和密钥"
-    echo "2. 启动服务: docker-compose up -d"
-    echo "3. 查看日志: docker-compose logs -f"
-    echo "4. 访问管理界面: http://localhost"
-    echo "5. 默认管理员账号: admin/admin (请立即修改密码)"
+    echo "🚀 接下来的步骤："
+    echo "1. 启动服务: docker-compose up -d"
+    echo "2. 查看日志: docker-compose logs -f"
+    echo "3. 访问管理界面: http://localhost"
+    echo "4. 默认管理员账号: admin/admin (请立即修改密码)"
     echo ""
-    echo "更多信息请查看 README.md 文件"
+    echo "📁 重要文件："
+    echo "- 密钥信息: .jumpserver_secrets"
+    echo "- 锁文件: $LOCK_FILE"
+    echo "- 配置文件: compose.yml"
+    echo ""
+    echo "🔧 其他命令："
+    echo "- 重新生成密钥: ./init.sh --regenerate-secrets"
+    echo "- 重新初始化: rm $LOCK_FILE && ./init.sh"
+    echo ""
+    echo "📖 更多信息请查看 README.md 文件"
 }
 
 # 主函数
 main() {
+    # 处理命令行参数
+    case "${1:-}" in
+        --regenerate-secrets)
+            regenerate_secrets_only
+            ;;
+        --help|-h)
+            echo "JumpServer 初始化脚本"
+            echo ""
+            echo "用法:"
+            echo "  $0                      完整初始化"
+            echo "  $0 --regenerate-secrets 仅重新生成密钥"
+            echo "  $0 --help              显示帮助信息"
+            exit 0
+            ;;
+        "")
+            # 默认行为：完整初始化
+            ;;
+        *)
+            log_error "未知参数: $1"
+            echo "使用 $0 --help 查看帮助信息"
+            exit 1
+            ;;
+    esac
+
     log_info "开始初始化 JumpServer 环境..."
 
+    # 检查锁文件
+    check_lock_file
+
+    # 执行初始化步骤
     check_docker
     create_directories
     set_permissions
-    create_env_file
     check_ports
-    generate_secrets
+    generate_and_apply_secrets
+    create_lock_file
     show_usage
 
-    log_info "初始化脚本执行完成！"
+    log_success "初始化脚本执行完成！"
 }
 
 # 运行主函数

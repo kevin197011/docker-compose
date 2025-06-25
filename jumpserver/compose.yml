@@ -58,6 +58,21 @@ services:
       CELERY_ACCEPT_CONTENT: "json"
       # Enable all services
       START_SERVICES: "all"
+      # Email settings for password reset
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_USE_TLS: "true"
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      EMAIL_SUBJECT_PREFIX: "[JumpServer] "
+      # Disable email requirement for testing
+      EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+      # Security settings
+      SECURITY_PASSWORD_RESET_LIMIT: "5"
+      SECURITY_LOGIN_LIMIT_TIME: "30"
+      SECURITY_LOGIN_LIMIT_COUNT: "7"
+      # Site settings
+      SITE_URL: "http://34.96.197.122"
     volumes:
       - ./data/core/media:/opt/jumpserver/data/media
       - ./data/core/static:/opt/jumpserver/data/static

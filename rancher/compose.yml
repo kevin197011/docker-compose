@@ -30,6 +30,7 @@ services:
       CATTLE_DB_CATTLE_MYSQL_NAME: cattle
       CATTLE_DB_CATTLE_USERNAME: cattle
       CATTLE_DB_CATTLE_PASSWORD: ${MYSQL_PASSWORD:-JKJP2PACGVlhIz3e}
+      CATTLE_K3S_EXEC: "--cluster-init"
     volumes:
       - ./data/rancher:/var/lib/rancher
       - ./data/audit_log:/var/log/auditlog

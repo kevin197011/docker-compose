@@ -12,3 +12,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    tmpfs:
+      - /run
+      - /var/run
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined

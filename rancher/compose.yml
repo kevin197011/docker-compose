@@ -4,6 +4,7 @@ services:
     container_name: rancher-server
     restart: unless-stopped
     privileged: true
+    user: root
     environment:
       CATTLE_BOOTSTRAP_PASSWORD: ${CATTLE_BOOTSTRAP_PASSWORD:-10mTsybsmfJVnZhH}
     volumes:

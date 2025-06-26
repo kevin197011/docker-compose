@@ -15,7 +15,7 @@ services:
     networks:
       - rancher_network
     ports:
-      - "3307:3306"
+      - "3306:3306"
   rancher-server:
     image: rancher/rancher:latest
     container_name: rancher-server
@@ -35,8 +35,8 @@ services:
       - ./data/audit_log:/var/log/auditlog
       - ./data/certs:/etc/rancher/ssl
     ports:
-      - "9080:80"
-      - "9443:443"
+      - "80:80"
+      - "443:443"
     networks:
       - rancher_network
 networks:

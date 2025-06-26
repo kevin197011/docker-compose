@@ -13,6 +13,8 @@ services:
       # Enable Gitea Actions
       - GITEA__actions__ENABLED=true
       - GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false
+      # SSH port configuration
+      - GITEA__server__SSH_PORT=2222
       # Pre-set global runner registration token
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-}
     ports:

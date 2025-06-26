@@ -15,6 +15,10 @@ services:
       - GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false
       # SSH port configuration
       - GITEA__server__SSH_PORT=2222
+      # Configure external URLs to fix CI/CD hostname resolution
+      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-http://localhost:3000/}
+      - GITEA__server__DOMAIN=${GITEA_DOMAIN:-localhost}
+      - GITEA__server__HTTP_PORT=3000
       # Pre-set global runner registration token
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-}
     ports:

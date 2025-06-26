@@ -317,3 +317,78 @@ cp compose.yml compose.yml.backup
 ---
 
 **注意**: 首次部署时，某些服务可能需要额外的配置步骤，请参考具体服务的官方文档。
+
+## 网络连接故障排除
+
+### 问题：CI/CD 中无法解析 "gitea" 主机名
+
+如果在 CI/CD 流水线中看到类似错误：
+```
+fatal: unable to access 'http://gitea:3000/root/repo/': Could not resolve host: gitea
+```
+
+#### 解决方案 1：使用外部可访问的 URL
+
+将仓库的远程 URL 更改为外部可访问的地址：
+
+```bash
+# 使用主机 IP 地址
+git remote set-url origin http://YOUR_HOST_IP:3000/username/repo
+
+# 或使用配置的域名
+git remote set-url origin http://gitea.yourdomain.com/username/repo
+```
+
+#### 解决方案 2：配置共享 Docker 网络
+
+如果 CI/CD runner 也在 Docker 中运行，确保它们连接到相同的网络：
+
+1. **创建共享网络**：
+   ```bash
+   docker network create shared_network
+   ```
+
+2. **修改 compose.yml 使用外部网络**：
+   ```yaml
+   networks:
+     default:
+       external: true
+       name: shared_network
+   ```
+
+3. **启动其他 CI/CD 服务时连接到相同网络**：
+   ```bash
+   docker run --network shared_network your-ci-service
+   ```
+
+#### 解决方案 3：使用 host 网络模式
+
+在 compose.yml 中添加网络模式：
+```yaml
+services:
+  gitea:
+    network_mode: "host"
+    # 注意：使用 host 模式时需要移除 ports 映射
+```
+
+#### 解决方案 4：配置 DNS 解析
+
+在 CI/CD runner 容器中添加 extra_hosts：
+```yaml
+services:
+  ci-runner:
+    extra_hosts:
+      - "gitea:YOUR_HOST_IP"
+```
+
+### 验证网络连接
+
+测试服务间的网络连接：
+```bash
+# 从 runner 容器内测试连接
+docker exec gitea-act-runner wget -qO- http://gitea:3000/api/healthz
+
+# 检查网络配置
+docker network ls
+docker network inspect gitea_gitea_net
+```

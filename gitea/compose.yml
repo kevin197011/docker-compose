@@ -27,6 +27,7 @@ services:
       - postgres
     networks:
       - gitea_net
+      - default
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
       interval: 30s
@@ -52,6 +53,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - gitea_net
+      - default
     healthcheck:
       test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "act_runner"]
       interval: 30s
@@ -70,6 +72,12 @@ services:
     restart: always
     networks:
       - gitea_net
+      - default
 networks:
   gitea_net:
     name: gitea_net
+    driver: bridge
+  # 添加默认网络，允许外部服务连接
+  default:
+    name: gitea_default
+    driver: bridge

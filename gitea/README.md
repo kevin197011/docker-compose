@@ -107,6 +107,13 @@ vi .env
 - `ACT_RUNNER_NAME`: Runner 名称（可选）
 - `ACT_RUNNER_LABELS`: Runner 标签（可选）
 
+### 预配置的Gitea设置
+
+项目已预配置以下Gitea环境变量：
+- `GITEA__server__SSH_PORT=2222`: SSH服务端口配置
+- `GITEA__actions__ENABLED=true`: 启用Gitea Actions功能
+- `GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false`: 安全配置
+
 ### Act-Runner 配置方式
 
 #### 方式一：自动生成令牌（推荐）

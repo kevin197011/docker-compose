@@ -1,453 +1,314 @@
 #!/bin/bash
 
-# Gitea + Drone CI/CD 一体化部署脚本
-# 集成环境初始化、配置和部署功能
-# Copyright (c) 2024
-# This software is released under the MIT License.
-# https://opensource.org/licenses/MIT
+# Gitea + Drone CI/CD Platform with Nginx Reverse Proxy
+# This script sets up a complete CI/CD environment with SSL support
 
 set -e
 
-# 颜色定义
+# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 日志函数
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# Function to print colored output
+print_color() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
 }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+# Function to load environment variables from .env file
+load_env_file() {
+    local env_file=".env"
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
+    if [ -f "$env_file" ]; then
+        print_color $YELLOW "Loading configuration from $env_file..."
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+        # Load variables from .env file, ignoring comments and empty lines
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            if [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "${line// }" ]]; then
+                continue
+            fi
 
-# 自动获取IP地址函数
-get_ip_address() {
-    local ip_address=""
+            # Export the variable if it's in KEY=VALUE format
+            if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+                export "$line"
+                print_color $GREEN "  ✓ Loaded: ${line%%=*}"
+            fi
+        done < "$env_file"
 
-    # 检测操作系统
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS 系统
-        # 方法1: 使用 route 命令获取默认路由的IP
-        ip_address=$(route get default 2>/dev/null | grep interface | awk '{print $2}' | head -1)
-        if [[ -n "$ip_address" ]]; then
-            ip_address=$(ifconfig "$ip_address" 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | head -1)
-        fi
-
-        # 方法2: 使用 ifconfig 获取第一个活跃的非回环IP
-        if [[ -z "$ip_address" ]]; then
-            ip_address=$(ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | head -1)
-        fi
+        print_color $GREEN "✓ Configuration loaded from $env_file"
     else
-        # Linux 系统
-        # 方法1: 优先使用默认路由的网卡IP
-        if command -v ip &> /dev/null; then
-            ip_address=$(ip route get 1.1.1.1 2>/dev/null | grep -o 'src [0-9.]*' | awk '{print $2}' | head -1)
-        fi
-
-        # 方法2: 如果方法1失败，尝试获取第一个非回环接口的IP
-        if [[ -z "$ip_address" ]] && command -v ip &> /dev/null; then
-            ip_address=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | head -1 | awk '{print $2}' | cut -d/ -f1)
-        fi
-
-        # 方法3: 使用hostname命令
-        if [[ -z "$ip_address" ]] && command -v hostname &> /dev/null; then
-            ip_address=$(hostname -I 2>/dev/null | awk '{print $1}')
-        fi
-    fi
-
-    # 方法4: 最后尝试curl获取外网IP（如果有网络）
-    if [[ -z "$ip_address" ]]; then
-        ip_address=$(curl -s --max-time 5 ifconfig.me 2>/dev/null || echo "")
-    fi
-
-        # 过滤掉IPv6地址，只保留IPv4
-    if [[ -n "$ip_address" && "$ip_address" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # 不在这里输出日志，避免污染返回值
-        echo "$ip_address"
-    else
-        echo "localhost"
+        print_color $YELLOW "No .env file found, using environment variables or defaults"
     fi
 }
 
-# 清理其他项目目录函数
-cleanup_other_directories() {
-    log_info "清理其他项目目录..."
+# Function to create .env template if it doesn't exist
+create_env_template() {
+    local env_file=".env"
 
-    # 当前目录名
-    current_dir=$(basename "$(pwd)")
+    if [ ! -f "$env_file" ]; then
+        print_color $YELLOW "Creating .env template file..."
 
-    # 切换到上级目录
-    cd ../
+                 cat > "$env_file" << 'EOF'
+# Gitea + Drone CI/CD Configuration
+# Copy this file and modify the values according to your environment
 
-    # 构建find命令，只保留当前目录
-    find_cmd="find . -maxdepth 1 ! -name '.' ! -name '$current_dir' -exec rm -rf {} +"
+# Network Configuration
+IP_ADDRESS=your-server-ip
 
-    # 显示将要执行的命令
-    log_info "将执行清理命令: $find_cmd"
+# Domain Configuration
+GITEA_DOMAIN=git.example.com
+DRONE_DOMAIN=drone.example.com
 
-    # 询问用户确认
-    echo ""
-    log_warn "此操作将删除除了 '$current_dir' 目录之外的所有文件和目录"
-    echo ""
-    read -p "是否继续? (y/N): " -n 1 -r
-    echo ""
+# Service Versions
+NGINX_VERSION=1.25-alpine
+GITEA_VERSION=1.21.5
+DRONE_VERSION=2.23.0
+DRONE_RUNNER_VERSION=1.8.3
 
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        eval "$find_cmd" 2>/dev/null || log_warn "清理过程中可能有些文件无法删除"
-        log_success "清理完成"
-    else
-        log_info "已取消清理操作"
-    fi
+# Drone Configuration (will be auto-generated if not set)
+DRONE_RPC_SECRET=
+DRONE_GITEA_CLIENT_ID=
+DRONE_GITEA_CLIENT_SECRET=
+DRONE_USER_CREATE=
 
-    # 切换回原目录
-    cd "$current_dir"
-}
+# Gitea Configuration
+GITEA_ADMIN_USER=root
 
-# 生成随机密钥
-generate_secret() {
-    openssl rand -hex 16 2>/dev/null || echo "$(date +%s | sha256sum | head -c 32)"
-}
+# SSL Configuration
+SSL_COUNTRY=US
+SSL_STATE=State
+SSL_CITY=City
+SSL_ORGANIZATION=Organization
+SSL_ORG_UNIT=OrgUnit
 
-# 检查必要的命令
-check_requirements() {
-    log_info "检查系统要求..."
-
-    if ! command -v docker &> /dev/null; then
-        log_error "Docker 未安装，请先安装 Docker"
-        exit 1
-    fi
-
-    if ! command -v docker compose &> /dev/null; then
-        log_error "Docker Compose 未安装，请先安装 Docker Compose"
-        exit 1
-    fi
-
-    log_success "系统要求检查通过"
-}
-
-# 创建基本目录结构
-create_directories() {
-    log_info "创建目录结构..."
-
-    # 根据项目需要创建目录
-    mkdir -p data/gitea data/drone logs config
-
-    # 创建 Gitea 配置目录
-    mkdir -p data/gitea/git data/gitea/ssh
-
-    # 设置正确的权限
-    chmod -R 755 data/
-
-    log_success "目录结构创建完成"
-}
-
-# 设置目录权限
-set_permissions() {
-    log_info "设置目录权限..."
-
-    # 设置基本权限
-    chmod -R 755 data/ 2>/dev/null || true
-    chmod -R 755 logs/ 2>/dev/null || true
-    chmod -R 755 config/ 2>/dev/null || true
-
-    # 设置脚本执行权限
-    chmod +x bootstrap.sh 2>/dev/null || true
-
-    log_success "权限设置完成"
-}
-
-# 检查端口占用
-check_ports() {
-    log_info "检查端口占用情况..."
-
-    # 检查 Gitea 端口
-    if netstat -tuln 2>/dev/null | grep -q ":3000 " || ss -tuln 2>/dev/null | grep -q ":3000 "; then
-        log_warn "端口 3000 (Gitea) 已被占用"
-    fi
-
-    # 检查 Drone 端口
-    if netstat -tuln 2>/dev/null | grep -q ":3001 " || ss -tuln 2>/dev/null | grep -q ":3001 "; then
-        log_warn "端口 3001 (Drone) 已被占用"
-    fi
-
-    # 检查 SSH 端口
-    if netstat -tuln 2>/dev/null | grep -q ":2222 " || ss -tuln 2>/dev/null | grep -q ":2222 "; then
-        log_warn "端口 2222 (Gitea SSH) 已被占用"
-    fi
-
-    # 检查 Drone Runner 端口
-    if netstat -tuln 2>/dev/null | grep -q ":3002 " || ss -tuln 2>/dev/null | grep -q ":3002 "; then
-        log_warn "端口 3002 (Drone Runner) 已被占用"
-    fi
-
-    log_success "端口检查完成"
-}
-
-# 更新 OAuth2 配置
-update_oauth_config() {
-    if [[ ! -f ".env" ]]; then
-        log_error ".env 文件不存在，请先运行完整部署"
-        exit 1
-    fi
-
-    echo "配置 Drone OAuth2 设置"
-    echo ""
-    echo "请在 Gitea 中创建 OAuth2 应用："
-    echo "1. 访问 Gitea: http://$(grep IP_ADDRESS .env | cut -d= -f2):3000"
-    echo "2. 登录管理员账户"
-    echo "3. 进入 设置 -> 应用 -> 管理 OAuth2 应用程序"
-    echo "4. 创建新应用，设置重定向 URI 为: http://$(grep IP_ADDRESS .env | cut -d= -f2):3001/login"
-    echo ""
-
-    read -p "请输入 OAuth2 Client ID: " client_id
-    read -p "请输入 OAuth2 Client Secret: " client_secret
-
-    if [[ -z "$client_id" || -z "$client_secret" ]]; then
-        log_error "Client ID 和 Client Secret 不能为空"
-        exit 1
-    fi
-
-    # 更新 .env 文件
-    sed -i.bak "s/^DRONE_GITEA_CLIENT_ID=.*/DRONE_GITEA_CLIENT_ID=${client_id}/" .env
-    sed -i.bak "s/^DRONE_GITEA_CLIENT_SECRET=.*/DRONE_GITEA_CLIENT_SECRET=${client_secret}/" .env
-
-    log_success "OAuth2 配置已更新"
-    echo ""
-    echo "重启服务以应用新配置:"
-    echo "  docker compose restart drone"
-    echo ""
-}
-
-# 显示帮助信息
-show_help() {
-    echo "Gitea + Drone CI/CD 一体化部署脚本"
-    echo ""
-    echo "用法:"
-    echo "  $0                      完整部署（推荐）"
-    echo "  $0 --init              仅初始化环境"
-    echo "  $0 --oauth             配置 OAuth2 设置"
-    echo "  $0 --cleanup           清理其他项目目录"
-    echo "  $0 --help              显示帮助信息"
-    echo ""
-    echo "功能说明:"
-    echo "  默认模式    : 检查环境 -> 初始化 -> 部署服务"
-    echo "  --init     : 仅创建目录、设置权限、检查端口"
-    echo "  --oauth    : 配置 Drone 的 OAuth2 设置"
-    echo "  --cleanup  : 清理上级目录中除当前目录外的所有文件"
-    echo ""
-    echo "环境变量:"
-    echo "  GITEA_VERSION          Gitea 版本 (默认: 1.21.5)"
-    echo "  DRONE_VERSION          Drone 版本 (默认: 2.23.0)"
-    echo "  DRONE_RUNNER_VERSION   Runner 版本 (默认: 1.8.3)"
-    echo "  IP_ADDRESS             IP地址 (默认: 自动获取)"
-    echo "  GITEA_ADMIN_USER       管理员用户名 (默认: root)"
-    echo ""
-}
-
-# 仅初始化环境
-init_only() {
-    log_info "开始初始化项目环境..."
-
-    # 检查系统要求
-    check_requirements
-
-    # 询问是否需要先清理其他目录
-    echo ""
-    read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cleanup_other_directories
-        echo ""
-    fi
-
-    # 执行初始化步骤
-    create_directories
-    set_permissions
-    check_ports
-
-    log_success "项目环境初始化完成！"
-    echo ""
-    echo "🚀 接下来的步骤："
-    echo "1. 快速部署: ./bootstrap.sh"
-    echo "2. 或手动启动: docker compose up -d"
-    echo "3. 查看日志: docker compose logs -f"
-    echo "4. 停止服务: docker compose down"
-    echo ""
-    echo "🌐 服务端口："
-    echo "- Gitea: http://localhost:3000"
-    echo "- Drone: http://localhost:3001"
-    echo "- Drone Runner: http://localhost:3002"
-    echo "- Gitea SSH: localhost:2222"
-    echo ""
-}
-
-# 主函数
-main() {
-    # 处理命令行参数
-    case "${1:-}" in
-        --init)
-            init_only
-            exit 0
-            ;;
-        --oauth)
-            update_oauth_config
-            exit 0
-            ;;
-        --cleanup)
-            cleanup_other_directories
-            exit 0
-            ;;
-        --help|-h)
-            show_help
-            exit 0
-            ;;
-        "")
-            # 默认行为：完整部署
-            ;;
-        *)
-            log_error "未知参数: $1"
-            echo "使用 $0 --help 查看帮助信息"
-            exit 1
-            ;;
-    esac
-
-    log_info "开始 Gitea + Drone CI/CD 一体化部署..."
-
-    # 检查系统要求
-    check_requirements
-
-    # 询问是否需要先清理其他目录
-    echo ""
-    read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cleanup_other_directories
-        echo ""
-    fi
-
-    # 执行初始化步骤
-    create_directories
-    set_permissions
-    check_ports
-
-        # 检查是否存在 .env 文件
-    if [[ -f ".env" ]]; then
-        log_info "发现现有的 .env 文件，加载配置..."
-        source .env
-        HOSTNAME_VAR=${HOSTNAME:-$(hostname)}
-        DRONE_VERSION_VAR=${DRONE_VERSION:-2.23.0}
-        DRONE_RUNNER_VERSION_VAR=${DRONE_RUNNER_VERSION:-1.8.3}
-        GITEA_VERSION_VAR=${GITEA_VERSION:-1.21.5}
-        IP_ADDRESS_VAR=${IP_ADDRESS:-$(get_ip_address)}
-        GITEA_ADMIN_USER_VAR=${GITEA_ADMIN_USER:-"root"}
-        DRONE_RPC_SECRET_VAR=${DRONE_RPC_SECRET:-$(generate_secret)}
-        DRONE_USER_CREATE_VAR=${DRONE_USER_CREATE:-"username:${GITEA_ADMIN_USER_VAR},machine:false,admin:true,token:${DRONE_RPC_SECRET_VAR}"}
-        DRONE_GITEA_CLIENT_ID_VAR=${DRONE_GITEA_CLIENT_ID:-""}
-        DRONE_GITEA_CLIENT_SECRET_VAR=${DRONE_GITEA_CLIENT_SECRET:-""}
-        log_success "已加载现有配置"
-    else
-        # 设置环境变量
-        HOSTNAME_VAR=$(hostname)
-        DRONE_VERSION_VAR=${DRONE_VERSION:-2.23.0}
-        DRONE_RUNNER_VERSION_VAR=${DRONE_RUNNER_VERSION:-1.8.3}
-        GITEA_VERSION_VAR=${GITEA_VERSION:-1.21.5}
-        IP_ADDRESS_VAR=$(get_ip_address)
-        GITEA_ADMIN_USER_VAR=${GITEA_ADMIN_USER:-"root"}
-        DRONE_RPC_SECRET_VAR=$(generate_secret)
-        DRONE_USER_CREATE_VAR="username:${GITEA_ADMIN_USER_VAR},machine:false,admin:true,token:${DRONE_RPC_SECRET_VAR}"
-        DRONE_GITEA_CLIENT_ID_VAR=${DRONE_GITEA_CLIENT_ID:-""}
-        DRONE_GITEA_CLIENT_SECRET_VAR=${DRONE_GITEA_CLIENT_SECRET:-""}
-
-        # 创建 .env 文件
-        log_info "创建环境变量配置文件..."
-        cat > .env << EOF
-# Gitea + Drone CI/CD 环境变量配置
-# 自动生成于: $(date)
-
-# 基础配置
-HOSTNAME=${HOSTNAME_VAR}
-IP_ADDRESS=${IP_ADDRESS_VAR}
-
-# 版本配置
-GITEA_VERSION=${GITEA_VERSION_VAR}
-DRONE_VERSION=${DRONE_VERSION_VAR}
-DRONE_RUNNER_VERSION=${DRONE_RUNNER_VERSION_VAR}
-
-# 用户配置
-GITEA_ADMIN_USER=${GITEA_ADMIN_USER_VAR}
-
-# Drone 配置
-DRONE_RPC_SECRET=${DRONE_RPC_SECRET_VAR}
-DRONE_USER_CREATE=${DRONE_USER_CREATE_VAR}
-DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID_VAR}
-DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET_VAR}
+# Certificate Names (optional, defaults to domain names)
+GITEA_CERT_NAME=git.example.com
+DRONE_CERT_NAME=drone.example.com
 EOF
 
-        log_success "环境变量配置文件已创建: .env"
+        print_color $GREEN "✓ Created .env template file"
+        print_color $YELLOW "Please edit .env file with your configuration before running again"
+        exit 0
     fi
-
-    # 显示IP获取结果
-    if [[ "$IP_ADDRESS_VAR" == "localhost" ]]; then
-        log_warn "无法自动获取IPv4地址，使用默认值: localhost"
-    else
-        log_success "自动获取到IP地址: $IP_ADDRESS_VAR"
-    fi
-
-    # 显示配置信息
-    log_info "配置信息:"
-    echo "  主机名: $HOSTNAME_VAR"
-    echo "  IP地址: $IP_ADDRESS_VAR"
-    echo "  Gitea版本: $GITEA_VERSION_VAR"
-    echo "  Drone版本: $DRONE_VERSION_VAR"
-    echo "  Drone Runner版本: $DRONE_RUNNER_VERSION_VAR"
-    echo "  管理员用户: $GITEA_ADMIN_USER_VAR"
-    echo "  RPC密钥: ${DRONE_RPC_SECRET_VAR:0:8}..."
-    echo ""
-
-    # 启动服务
-    log_info "启动服务..."
-    docker compose up -d
-
-    # 等待服务启动
-    log_info "等待服务启动完成..."
-    sleep 10
-
-    # 显示访问信息
-    echo ""
-    log_success "部署完成！"
-    echo ""
-    echo "🌐 访问地址:"
-    echo "  Gitea: http://${IP_ADDRESS_VAR}:3000/"
-    echo "  Drone: http://${IP_ADDRESS_VAR}:3001/"
-    echo "  Drone Runner: http://${IP_ADDRESS_VAR}:3002/"
-    echo ""
-    echo "👤 默认账户:"
-    echo "  用户名: $GITEA_ADMIN_USER_VAR"
-    echo "  密码: 首次访问时设置"
-    echo ""
-    echo "🔧 配置说明:"
-    echo "  1. 首先访问 Gitea 完成初始化设置"
-    echo "  2. 在 Gitea 中创建 OAuth2 应用获取 Client ID 和 Secret"
-    echo "  3. 使用获取的凭据配置 Drone"
-    echo ""
-    echo "📝 RPC 密钥 (用于 Drone 配置): $DRONE_RPC_SECRET_VAR"
-    echo ""
-    echo "📊 查看服务状态: docker compose ps"
-    echo "📋 查看日志: docker compose logs -f"
-    echo ""
 }
 
-# 运行主函数
-main "$@"
+print_color $BLUE "=== Gitea + Drone CI/CD Platform Setup with Nginx ==="
+echo
+
+# Parse command line arguments
+case "${1:-}" in
+    --create-env)
+        create_env_template
+        exit 0
+        ;;
+    --help|-h)
+        print_color $BLUE "Usage: $0 [OPTIONS]"
+        echo
+        print_color $YELLOW "Options:"
+        echo "  --create-env    Create .env template file"
+        echo "  --help, -h      Show this help message"
+        echo
+                 print_color $YELLOW "Environment Variables (can be set in .env file):"
+         echo "  IP_ADDRESS               Server IP address (required)"
+         echo "  GITEA_DOMAIN             Gitea domain name (optional, defaults to IP_ADDRESS)"
+         echo "  DRONE_DOMAIN             Drone domain name (optional, defaults to IP_ADDRESS:3001)"
+         echo "  GITEA_CERT_NAME          Gitea SSL certificate name (defaults to GITEA_DOMAIN)"
+         echo "  DRONE_CERT_NAME          Drone SSL certificate name (defaults to DRONE_DOMAIN)"
+         echo "  NGINX_VERSION            Nginx version (default: 1.25-alpine)"
+         echo "  GITEA_VERSION            Gitea version (default: 1.21.5)"
+         echo "  DRONE_VERSION            Drone version (default: 2.23.0)"
+         echo "  DRONE_RUNNER_VERSION     Drone Runner version (default: 1.8.3)"
+         echo "  DRONE_RPC_SECRET         Drone RPC secret (auto-generated if empty)"
+         echo "  DRONE_GITEA_CLIENT_ID    Gitea OAuth2 Client ID"
+         echo "  DRONE_GITEA_CLIENT_SECRET Gitea OAuth2 Client Secret"
+         echo "  DRONE_USER_CREATE        Drone user creation string"
+         echo "  GITEA_ADMIN_USER         Gitea admin username (default: root)"
+        exit 0
+        ;;
+esac
+
+# Load configuration from .env file
+load_env_file
+
+# Create necessary directories
+print_color $YELLOW "Creating directory structure..."
+mkdir -p data/{gitea,drone,nginx/logs,nginx/cache,ssl}
+mkdir -p config/nginx/conf.d
+
+print_color $GREEN "✓ Directory structure created"
+
+# Check for required environment variables
+print_color $YELLOW "Checking environment variables..."
+
+if [ -z "$IP_ADDRESS" ]; then
+    print_color $RED "ERROR: IP_ADDRESS environment variable is not set"
+    echo "Please set it in .env file or environment: IP_ADDRESS=your_server_ip"
+    echo "Run '$0 --create-env' to create a template .env file"
+    exit 1
+fi
+
+if [ -z "$GITEA_DOMAIN" ]; then
+    print_color $YELLOW "GITEA_DOMAIN not set, using IP_ADDRESS for configuration"
+    export GITEA_DOMAIN=$IP_ADDRESS
+fi
+
+if [ -z "$DRONE_DOMAIN" ]; then
+    print_color $YELLOW "DRONE_DOMAIN not set, using IP_ADDRESS:3001 for configuration"
+    export DRONE_DOMAIN="${IP_ADDRESS}:3001"
+fi
+
+# Set default versions if not provided
+export NGINX_VERSION=${NGINX_VERSION:-1.25-alpine}
+export GITEA_VERSION=${GITEA_VERSION:-1.21.5}
+export DRONE_VERSION=${DRONE_VERSION:-2.23.0}
+export DRONE_RUNNER_VERSION=${DRONE_RUNNER_VERSION:-1.8.3}
+export GITEA_ADMIN_USER=${GITEA_ADMIN_USER:-root}
+
+# Set certificate names if not provided
+export GITEA_CERT_NAME=${GITEA_CERT_NAME:-$GITEA_DOMAIN}
+export DRONE_CERT_NAME=${DRONE_CERT_NAME:-$DRONE_DOMAIN}
+
+# Set SSL certificate defaults
+export SSL_COUNTRY=${SSL_COUNTRY:-US}
+export SSL_STATE=${SSL_STATE:-State}
+export SSL_CITY=${SSL_CITY:-City}
+export SSL_ORGANIZATION=${SSL_ORGANIZATION:-Organization}
+export SSL_ORG_UNIT=${SSL_ORG_UNIT:-OrgUnit}
+
+print_color $GREEN "✓ Environment variables configured"
+print_color $BLUE "  IP_ADDRESS: $IP_ADDRESS"
+print_color $BLUE "  GITEA_DOMAIN: $GITEA_DOMAIN"
+print_color $BLUE "  DRONE_DOMAIN: $DRONE_DOMAIN"
+print_color $BLUE "  GITEA_CERT_NAME: $GITEA_CERT_NAME"
+print_color $BLUE "  DRONE_CERT_NAME: $DRONE_CERT_NAME"
+print_color $BLUE "  Gitea Version: $GITEA_VERSION"
+print_color $BLUE "  Drone Version: $DRONE_VERSION"
+
+# Generate secrets if not provided
+if [ -z "$DRONE_RPC_SECRET" ]; then
+    export DRONE_RPC_SECRET=$(openssl rand -hex 16)
+    print_color $YELLOW "Generated DRONE_RPC_SECRET: $DRONE_RPC_SECRET"
+
+    # Update .env file with generated secret
+    if [ -f ".env" ]; then
+        if grep -q "^DRONE_RPC_SECRET=" .env; then
+            sed -i.bak "s/^DRONE_RPC_SECRET=.*/DRONE_RPC_SECRET=$DRONE_RPC_SECRET/" .env
+        else
+            echo "DRONE_RPC_SECRET=$DRONE_RPC_SECRET" >> .env
+        fi
+        print_color $GREEN "✓ Updated DRONE_RPC_SECRET in .env file"
+    fi
+fi
+
+if [ -z "$DRONE_GITEA_CLIENT_ID" ]; then
+    print_color $YELLOW "DRONE_GITEA_CLIENT_ID not set - you'll need to configure this after Gitea setup"
+fi
+
+if [ -z "$DRONE_GITEA_CLIENT_SECRET" ]; then
+    print_color $YELLOW "DRONE_GITEA_CLIENT_SECRET not set - you'll need to configure this after Gitea setup"
+fi
+
+# SSL Certificate setup
+print_color $YELLOW "Setting up SSL certificates..."
+
+# Create Gitea SSL certificate
+if [ ! -f "data/ssl/${GITEA_CERT_NAME}.crt" ] || [ ! -f "data/ssl/${GITEA_CERT_NAME}.key" ]; then
+    print_color $YELLOW "Gitea SSL certificates not found. Creating self-signed certificates..."
+
+    # Create self-signed certificate for Gitea
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "data/ssl/${GITEA_CERT_NAME}.key" \
+        -out "data/ssl/${GITEA_CERT_NAME}.crt" \
+        -subj "/C=${SSL_COUNTRY}/ST=${SSL_STATE}/L=${SSL_CITY}/O=${SSL_ORGANIZATION}/OU=${SSL_ORG_UNIT}/CN=${GITEA_DOMAIN}"
+
+    print_color $GREEN "✓ Gitea self-signed SSL certificate created"
+else
+    print_color $GREEN "✓ Gitea SSL certificates found"
+fi
+
+# Create Drone SSL certificate
+if [ ! -f "data/ssl/${DRONE_CERT_NAME}.crt" ] || [ ! -f "data/ssl/${DRONE_CERT_NAME}.key" ]; then
+    print_color $YELLOW "Drone SSL certificates not found. Creating self-signed certificates..."
+
+    # Create self-signed certificate for Drone
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "data/ssl/${DRONE_CERT_NAME}.key" \
+        -out "data/ssl/${DRONE_CERT_NAME}.crt" \
+        -subj "/C=${SSL_COUNTRY}/ST=${SSL_STATE}/L=${SSL_CITY}/O=${SSL_ORGANIZATION}/OU=${SSL_ORG_UNIT}/CN=${DRONE_DOMAIN}"
+
+    print_color $GREEN "✓ Drone self-signed SSL certificate created"
+else
+    print_color $GREEN "✓ Drone SSL certificates found"
+fi
+
+print_color $YELLOW "For production, replace with proper SSL certificates from Let's Encrypt or CA"
+
+# Set proper permissions
+chmod 600 data/ssl/*.key
+chmod 644 data/ssl/*.crt
+
+# Process nginx configuration templates
+print_color $YELLOW "Configuring nginx..."
+
+# Process Gitea configuration
+sed -e "s/\${GITEA_DOMAIN}/${GITEA_DOMAIN}/g" \
+    -e "s/\${GITEA_CERT_NAME}/${GITEA_CERT_NAME}/g" \
+    config/nginx/conf.d/gitea.conf > config/nginx/conf.d/gitea.conf.tmp
+mv config/nginx/conf.d/gitea.conf.tmp config/nginx/conf.d/gitea.conf
+
+# Process Drone configuration
+sed -e "s/\${DRONE_DOMAIN}/${DRONE_DOMAIN}/g" \
+    -e "s/\${DRONE_CERT_NAME}/${DRONE_CERT_NAME}/g" \
+    config/nginx/conf.d/drone.conf > config/nginx/conf.d/drone.conf.tmp
+mv config/nginx/conf.d/drone.conf.tmp config/nginx/conf.d/drone.conf
+
+print_color $GREEN "✓ Nginx configuration updated"
+
+# Start services
+print_color $YELLOW "Starting services..."
+docker-compose up -d
+
+print_color $GREEN "✓ Services started successfully!"
+
+echo
+print_color $BLUE "=== Setup Complete ==="
+print_color $GREEN "Access URLs:"
+print_color $GREEN "  Gitea (HTTPS): https://${GITEA_DOMAIN}"
+print_color $GREEN "  Gitea (HTTP):  http://${GITEA_DOMAIN} (redirects to HTTPS)"
+print_color $GREEN "  Gitea (Direct): http://${IP_ADDRESS}:3000"
+print_color $GREEN "  Drone (HTTPS): https://${DRONE_DOMAIN}"
+print_color $GREEN "  Drone (HTTP):  http://${DRONE_DOMAIN} (redirects to HTTPS)"
+print_color $GREEN "  Drone (Direct): http://${IP_ADDRESS}:3001"
+print_color $GREEN "  Drone Runner UI: http://${IP_ADDRESS}:3002"
+print_color $GREEN "  Gitea SSH: ${GITEA_DOMAIN}:2222"
+
+echo
+print_color $YELLOW "Next Steps:"
+echo "1. Open Gitea at https://${GITEA_DOMAIN} and complete initial setup"
+echo "2. Create OAuth2 application in Gitea:"
+echo "   - Go to Settings > Applications > Manage OAuth2 Applications"
+echo "   - Create new application with redirect URL: https://${DRONE_DOMAIN}/login"
+echo "3. Update .env file with OAuth2 credentials:"
+echo "   DRONE_GITEA_CLIENT_ID='your_client_id'"
+echo "   DRONE_GITEA_CLIENT_SECRET='your_client_secret'"
+echo "   DRONE_USER_CREATE='username:${GITEA_ADMIN_USER},admin:true'"
+echo "4. Restart drone services: docker-compose restart drone drone-runner"
+
+echo
+print_color $YELLOW "Important Notes:"
+echo "- Generated DRONE_RPC_SECRET: $DRONE_RPC_SECRET"
+echo "- Self-signed certificates created for development:"
+echo "  - Gitea: ${GITEA_CERT_NAME}.crt/.key"
+echo "  - Drone: ${DRONE_CERT_NAME}.crt/.key"
+echo "- For production, replace with proper SSL certificates"
+echo "- SSH clone URL: git@${GITEA_DOMAIN}:username/repository.git (port 2222)"
+echo "- Configuration saved in .env file"
+
+echo
+print_color $BLUE "For troubleshooting, check logs with:"
+echo "docker-compose logs -f [service_name]"

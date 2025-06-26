@@ -1,4 +1,30 @@
 services:
+  nginx:
+    container_name: gitea-nginx
+    image: nginx:${NGINX_VERSION:-1.25-alpine}
+    restart: unless-stopped
+    depends_on:
+      gitea:
+        condition: service_healthy
+      drone:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - cicd_net
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./data/nginx/logs:/var/log/nginx
+      - ./data/nginx/cache:/var/cache/nginx
+      - ./data/ssl:/etc/nginx/ssl:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
   gitea:
     container_name: gitea
     image: gitea/gitea:${GITEA_VERSION:-1.21.5}
@@ -9,22 +35,22 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - RUN_MODE=prod
-      - DOMAIN=${IP_ADDRESS}
-      - SSH_DOMAIN=${IP_ADDRESS}
+      - DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
+      - SSH_DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
       - HTTP_PORT=3000
-      - ROOT_URL=http://${IP_ADDRESS}:3000
+      - ROOT_URL=https://${GITEA_DOMAIN:-${IP_ADDRESS}}
       - SSH_PORT=2222
       - SSH_LISTEN_PORT=22
       - DB_TYPE=sqlite3
       - GITEA__database__DB_TYPE=sqlite3
       - GITEA__database__PATH=/data/gitea/gitea.db
-      - GITEA__server__DOMAIN=${IP_ADDRESS}
-      - GITEA__server__SSH_DOMAIN=${IP_ADDRESS}
-      - GITEA__server__ROOT_URL=http://${IP_ADDRESS}:3000
+      - GITEA__server__DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
+      - GITEA__server__SSH_DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
+      - GITEA__server__ROOT_URL=https://${GITEA_DOMAIN:-${IP_ADDRESS}}
       - GITEA__security__INSTALL_LOCK=false
     ports:
-      - "3000:3000"
-      - "2222:22"
+      - "3000:3000" # 直接访问端口
+      - "2222:22" # SSH 端口
     networks:
       - cicd_net
     volumes:
@@ -46,11 +72,11 @@ services:
       # https://docs.drone.io/server/provider/gitea/
       - DRONE_DATABASE_DRIVER=sqlite3
       - DRONE_DATABASE_DATASOURCE=/data/database.sqlite
-      - DRONE_GITEA_SERVER=http://${IP_ADDRESS}:3000/
+      - DRONE_GITEA_SERVER=https://${GITEA_DOMAIN:-${IP_ADDRESS}}/
       - DRONE_GIT_ALWAYS_AUTH=false
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
-      - DRONE_SERVER_PROTO=http
-      - DRONE_SERVER_HOST=${IP_ADDRESS}:3001
+      - DRONE_SERVER_PROTO=https
+      - DRONE_SERVER_HOST=${DRONE_DOMAIN:-${IP_ADDRESS}:3001}
       - DRONE_TLS_AUTOCERT=false
       - DRONE_USER_CREATE=${DRONE_USER_CREATE}
       - DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID}
@@ -60,15 +86,15 @@ services:
       - DRONE_CLEANUP_INTERVAL=24h
       - DRONE_CLEANUP_DISABLED=false
     ports:
-      - "3001:80"
-      - "9001:9000"
+      - "3001:80" # 直接访问端口
+      - "9000:9000" # 内部 RPC 端口
     networks:
       - cicd_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/drone:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -95,7 +121,7 @@ services:
       - DRONE_UI_USERNAME=${GITEA_ADMIN_USER:-root}
       - DRONE_UI_PASSWORD=${DRONE_RPC_SECRET}
     ports:
-      - "3002:3000"
+      - "3002:3000" # Runner UI 端口
     networks:
       - cicd_net
     volumes:

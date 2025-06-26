@@ -4,10 +4,10 @@ services:
     container_name: rancher-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rancher123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Gs6ODcdweZgcSRjs}
       MYSQL_DATABASE: cattle
       MYSQL_USER: cattle
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cattle123456}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-JKJP2PACGVlhIz3e}
     volumes:
       - ./data/mysql:/var/lib/mysql
       - ./config/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
@@ -24,12 +24,12 @@ services:
     depends_on:
       - rancher-mysql
     environment:
-      CATTLE_BOOTSTRAP_PASSWORD: ${CATTLE_BOOTSTRAP_PASSWORD:-admin123456}
+      CATTLE_BOOTSTRAP_PASSWORD: ${CATTLE_BOOTSTRAP_PASSWORD:-yaSc8flqqiA3LpRt}
       CATTLE_DB_CATTLE_MYSQL_HOST: rancher-mysql
       CATTLE_DB_CATTLE_MYSQL_PORT: 3306
       CATTLE_DB_CATTLE_MYSQL_NAME: cattle
       CATTLE_DB_CATTLE_USERNAME: cattle
-      CATTLE_DB_CATTLE_PASSWORD: ${MYSQL_PASSWORD:-cattle123456}
+      CATTLE_DB_CATTLE_PASSWORD: ${MYSQL_PASSWORD:-JKJP2PACGVlhIz3e}
     volumes:
       - ./data/rancher:/var/lib/rancher
       - ./data/audit_log:/var/log/auditlog

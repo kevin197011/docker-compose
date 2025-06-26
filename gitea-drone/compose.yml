@@ -100,7 +100,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/drone:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/healthz"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -115,8 +115,8 @@ services:
     environment:
       # https://docs.drone.io/runner/docker/installation/linux/
       # https://docs.drone.io/server/metrics/
-      - DRONE_RPC_PROTO=https
-      - DRONE_RPC_HOST=drone
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_HOST=drone:80
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
       - DRONE_RUNNER_NAME="drone-runner"
       - DRONE_RUNNER_CAPACITY=2
@@ -133,7 +133,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/healthz"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5

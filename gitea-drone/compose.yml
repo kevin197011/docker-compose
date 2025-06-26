@@ -1,7 +1,7 @@
 services:
   gitea:
     container_name: gitea
-    image: gitea/gitea:${GITEA_VERSION:-1.10.6}
+    image: gitea/gitea:${GITEA_VERSION:-1.21.5}
     restart: unless-stopped
     environment:
       # https://docs.gitea.io/en-us/install-with-docker/#environments-variables
@@ -16,6 +16,12 @@ services:
       - SSH_PORT=2222
       - SSH_LISTEN_PORT=22
       - DB_TYPE=sqlite3
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+      - GITEA__server__DOMAIN=${IP_ADDRESS}
+      - GITEA__server__SSH_DOMAIN=${IP_ADDRESS}
+      - GITEA__server__ROOT_URL=http://${IP_ADDRESS}:3000
+      - GITEA__security__INSTALL_LOCK=false
     ports:
       - "3000:3000"
       - "2222:22"
@@ -23,12 +29,19 @@ services:
       - cicd_net
     volumes:
       - ./data/gitea:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
   drone:
     container_name: drone
-    image: drone/drone:${DRONE_VERSION:-1.6.4}
+    image: drone/drone:${DRONE_VERSION:-2.23.0}
     restart: unless-stopped
     depends_on:
-      - gitea
+      gitea:
+        condition: service_healthy
     environment:
       # https://docs.drone.io/server/provider/gitea/
       - DRONE_DATABASE_DRIVER=sqlite3
@@ -42,6 +55,10 @@ services:
       - DRONE_USER_CREATE=${DRONE_USER_CREATE}
       - DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID}
       - DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET}
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_TRACE=false
+      - DRONE_CLEANUP_INTERVAL=24h
+      - DRONE_CLEANUP_DISABLED=false
     ports:
       - "3001:80"
       - "9001:9000"
@@ -50,12 +67,19 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/drone:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
   drone-runner:
     container_name: drone-runner
-    image: drone/drone-runner-docker:${DRONE_RUNNER_VERSION:-1}
+    image: drone/drone-runner-docker:${DRONE_RUNNER_VERSION:-1.8.3}
     restart: unless-stopped
     depends_on:
-      - drone
+      drone:
+        condition: service_healthy
     environment:
       # https://docs.drone.io/runner/docker/installation/linux/
       # https://docs.drone.io/server/metrics/
@@ -67,12 +91,21 @@ services:
       - DRONE_RUNNER_NETWORKS=cicd_net
       - DRONE_DEBUG=false
       - DRONE_TRACE=false
+      - DRONE_RUNNER_ENVIRON=PLUGIN_PRIVILEGED:true
+      - DRONE_UI_USERNAME=${GITEA_ADMIN_USER:-root}
+      - DRONE_UI_PASSWORD=${DRONE_RPC_SECRET}
     ports:
       - "3002:3000"
     networks:
       - cicd_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 networks:
   cicd_net:
     name: cicd_net

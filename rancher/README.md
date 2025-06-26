@@ -200,9 +200,12 @@ tar xzf rancher_data_backup.tar.gz
    # 如果容器无法启动，检查 SELinux 日志
    ausearch -m avc -ts recent
 
-   # 临时禁用 SELinux（不推荐生产环境）
-   sudo setenforce 0
-   ```
+       # 临时禁用 SELinux（不推荐生产环境）
+    sudo setenforce 0
+
+    # 运行故障排除脚本进行全面诊断
+    ./centos9-troubleshoot.sh
+    ```
 
 3. **集群注册失败**
    - 检查网络连接
@@ -237,6 +240,14 @@ docker compose up -d
 # 检查升级状态
 docker compose logs -f rancher-server
 ```
+
+## 文件说明
+
+- `compose.yml` - Docker Compose 配置文件
+- `init.sh` - 初始化脚本，自动生成密码
+- `centos9-setup.sh` - CentOS 9 系统准备脚本
+- `centos9-troubleshoot.sh` - CentOS 9 故障排除脚本
+- `README.md` - 本说明文档
 
 ## 清理命令
 

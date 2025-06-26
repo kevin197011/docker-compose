@@ -19,6 +19,40 @@ print_color() {
     echo -e "${color}${message}${NC}"
 }
 
+# 清理其他项目目录函数
+cleanup_other_directories() {
+    print_color $BLUE "清理其他项目目录..."
+
+    # 当前目录名
+    current_dir=$(basename "$(pwd)")
+
+    # 切换到上级目录
+    cd ../
+
+    # 构建find命令，只保留当前目录
+    find_cmd="find . -maxdepth 1 ! -name '.' ! -name '$current_dir' -exec rm -rf {} +"
+
+    # 显示将要执行的命令
+    print_color $BLUE "将执行清理命令: $find_cmd"
+
+    # 询问用户确认
+    echo ""
+    print_color $YELLOW "此操作将删除除了 '$current_dir' 目录之外的所有文件和目录"
+    echo ""
+    read -p "是否继续? (y/N): " -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        eval "$find_cmd" 2>/dev/null || print_color $YELLOW "清理过程中可能有些文件无法删除"
+        print_color $GREEN "✓ 清理完成"
+    else
+        print_color $BLUE "已取消清理操作"
+    fi
+
+    # 切换回原目录
+    cd "$current_dir"
+}
+
 # Function to load environment variables from .env file
 load_env_file() {
     local env_file=".env"
@@ -53,10 +87,15 @@ echo
 
 # Parse command line arguments
 case "${1:-}" in
+    --cleanup)
+        cleanup_other_directories
+        exit 0
+        ;;
     --help|-h)
         print_color $BLUE "Usage: $0 [OPTIONS]"
         echo
         print_color $YELLOW "Options:"
+        echo "  --cleanup       Clean up other project directories"
         echo "  --help, -h      Show this help message"
         echo
         print_color $YELLOW "Environment Variables (must be set in .env file):"
@@ -80,6 +119,15 @@ esac
 
 # Load configuration from .env file
 load_env_file
+
+# 询问是否需要先清理其他目录
+echo ""
+read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    cleanup_other_directories
+    echo ""
+fi
 
 # Create necessary directories
 print_color $YELLOW "Creating directory structure..."

@@ -29,8 +29,8 @@ docker compose logs -f rancher-server
 
 ### 2. 访问 Rancher
 
-- **HTTPS访问**: https://your-server-ip:9443
-- **HTTP访问**: http://your-server-ip:9080
+- **HTTPS访问**: https://your-server-ip
+- **HTTP访问**: http://your-server-ip
 - **默认用户名**: admin
 - **密码**: 在 init.sh 执行后显示的密码
 
@@ -45,23 +45,17 @@ docker compose logs -f rancher-server
 
 | 服务 | 容器名 | 端口 | 说明 |
 |------|--------|------|------|
-| Rancher Server | rancher-server | 9080, 9443 | Rancher 管理界面 |
-| MySQL | rancher-mysql | 3307 | 数据库服务 |
+| Rancher Server | rancher-server | 80, 443 | Rancher 管理界面（内置 k3s 和 SQLite） |
 
 ## 环境变量
 
 | 变量名 | 默认值 | 说明 |
 |--------|--------|------|
-| `MYSQL_ROOT_PASSWORD` | 自动生成 | MySQL root 密码 |
-| `MYSQL_PASSWORD` | 自动生成 | MySQL cattle 用户密码 |
 | `CATTLE_BOOTSTRAP_PASSWORD` | 自动生成 | Rancher admin 初始密码 |
 
 ## 数据持久化
 
-- **data/rancher**: Rancher 应用数据
-- **data/mysql**: MySQL 数据库文件
-- **data/audit_log**: 审计日志
-- **data/certs**: SSL 证书存储
+- **data/rancher**: Rancher 应用数据（包含 k3s 集群数据、SQLite 数据库、SSL 证书等）
 
 ## 常用命令
 
@@ -72,18 +66,12 @@ docker compose ps
 # 查看 Rancher 日志
 docker compose logs -f rancher-server
 
-# 查看 MySQL 日志
-docker compose logs -f rancher-mysql
-
 # 重启服务
 docker compose restart rancher-server
 
 # 更新镜像
 docker compose pull
 docker compose up -d
-
-# 备份数据
-docker compose exec rancher-mysql mysqldump -u root -p cattle > rancher_backup.sql
 
 # 重新生成密码
 ./init.sh --regenerate-secrets
@@ -140,33 +128,15 @@ docker compose exec rancher-mysql mysqldump -u root -p cattle > rancher_backup.s
 ### 数据备份
 
 ```bash
-# 备份 MySQL 数据
-docker compose exec rancher-mysql mysqldump -u root -p cattle > backup.sql
-
-# 备份 Rancher 数据
+# 备份 Rancher 数据（包含所有数据）
 tar czf rancher_data_backup.tar.gz data/rancher/
-
-# 备份证书
-tar czf rancher_certs_backup.tar.gz data/certs/
-
-# 备份审计日志
-tar czf rancher_audit_backup.tar.gz data/audit_log/
 ```
 
 ### 数据恢复
 
 ```bash
-# 恢复 MySQL 数据
-docker compose exec -T rancher-mysql mysql -u root -p cattle < backup.sql
-
 # 恢复 Rancher 数据
 tar xzf rancher_data_backup.tar.gz
-
-# 恢复证书
-tar xzf rancher_certs_backup.tar.gz
-
-# 恢复审计日志
-tar xzf rancher_audit_backup.tar.gz
 ```
 
 ## 安全建议
@@ -191,13 +161,15 @@ tar xzf rancher_audit_backup.tar.gz
    docker compose logs rancher-server
    ```
 
-2. **数据库连接失败**
+2. **k3s 集群问题**
    ```bash
-   # 检查 MySQL 服务
-   docker compose logs rancher-mysql
+   # 查看 k3s 相关日志
+   docker compose logs rancher-server | grep k3s
 
-   # 验证数据库连接
-   docker compose exec rancher-mysql mysql -u cattle -p cattle
+   # 如果遇到重置问题，清理数据重新开始
+   docker compose down
+   rm -rf data/rancher/*
+   docker compose up -d
    ```
 
 3. **集群注册失败**
@@ -210,9 +182,6 @@ tar xzf rancher_audit_backup.tar.gz
 ```bash
 # Rancher Server 日志
 docker compose logs -f rancher-server
-
-# MySQL 日志
-docker compose logs -f rancher-mysql
 
 # 系统资源监控
 docker stats

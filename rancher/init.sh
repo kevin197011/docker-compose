@@ -7,7 +7,6 @@ set -e
 
 COMPOSE_FILE="compose.yml"
 LOCK_FILE=".rancher_initialized"
-MYSQL_CONFIG="config/mysql/my.cnf"
 
 # Colors for output
 RED='\033[0;31m'
@@ -56,23 +55,17 @@ update_compose_password() {
 regenerate_passwords() {
     print_info "Regenerating passwords..."
 
-    # Generate new passwords
-    MYSQL_ROOT_PASSWORD=$(generate_password)
-    MYSQL_PASSWORD=$(generate_password)
+        # Generate new password
     CATTLE_BOOTSTRAP_PASSWORD=$(generate_password)
 
     # Update compose file
-    update_compose_password "MYSQL_ROOT_PASSWORD" "$MYSQL_ROOT_PASSWORD"
-    update_compose_password "MYSQL_PASSWORD" "$MYSQL_PASSWORD"
     update_compose_password "CATTLE_BOOTSTRAP_PASSWORD" "$CATTLE_BOOTSTRAP_PASSWORD"
 
-    print_success "Passwords regenerated successfully!"
+    print_success "Password regenerated successfully!"
 
-    # Display new passwords
+    # Display new password
     echo ""
     echo "==================== Rancher Credentials ===================="
-    echo "MySQL Root Password: $MYSQL_ROOT_PASSWORD"
-    echo "MySQL User Password: $MYSQL_PASSWORD"
     echo "Rancher Admin Password: $CATTLE_BOOTSTRAP_PASSWORD"
     echo "=============================================================="
     echo ""
@@ -101,20 +94,15 @@ if ! command -v docker compose &> /dev/null && ! command -v docker &> /dev/null;
     exit 1
 fi
 
-# Create config and data directories if they don't exist
-mkdir -p config/mysql
-mkdir -p data/{mysql,rancher,audit_log,certs}
+# Create data directory if it doesn't exist
+mkdir -p data/rancher
 
-# Generate random passwords
-print_info "Generating secure passwords..."
-MYSQL_ROOT_PASSWORD=$(generate_password)
-MYSQL_PASSWORD=$(generate_password)
+# Generate random password
+print_info "Generating secure password..."
 CATTLE_BOOTSTRAP_PASSWORD=$(generate_password)
 
-# Update passwords in compose file
+# Update password in compose file
 print_info "Updating configuration files..."
-update_compose_password "MYSQL_ROOT_PASSWORD" "$MYSQL_ROOT_PASSWORD"
-update_compose_password "MYSQL_PASSWORD" "$MYSQL_PASSWORD"
 update_compose_password "CATTLE_BOOTSTRAP_PASSWORD" "$CATTLE_BOOTSTRAP_PASSWORD"
 
 # Create lock file
@@ -125,12 +113,10 @@ print_success "Rancher environment initialized successfully!"
 # Display important information
 echo ""
 echo "==================== Rancher Deployment Info ===================="
-echo "HTTPS Access: https://your-server-ip:9443"
-echo "HTTP Access: http://your-server-ip:9080"
+echo "HTTPS Access: https://your-server-ip:443"
+echo "HTTP Access: http://your-server-ip:80"
 echo ""
 echo "==================== Initial Credentials ===================="
-echo "MySQL Root Password: $MYSQL_ROOT_PASSWORD"
-echo "MySQL User Password: $MYSQL_PASSWORD"
 echo "Rancher Admin Password: $CATTLE_BOOTSTRAP_PASSWORD"
 echo ""
 echo "==================== First Time Setup ===================="

@@ -1,45 +1,13 @@
 services:
-  rancher-mysql:
-    image: mysql:8.0
-    container_name: rancher-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Gs6ODcdweZgcSRjs}
-      MYSQL_DATABASE: cattle
-      MYSQL_USER: cattle
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-JKJP2PACGVlhIz3e}
-    volumes:
-      - ./data/mysql:/var/lib/mysql
-      - ./config/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    networks:
-      - rancher_network
-    ports:
-      - "3306:3306"
   rancher-server:
     image: rancher/rancher:latest
     container_name: rancher-server
     restart: unless-stopped
     privileged: true
-    depends_on:
-      - rancher-mysql
     environment:
-      CATTLE_BOOTSTRAP_PASSWORD: ${CATTLE_BOOTSTRAP_PASSWORD:-yaSc8flqqiA3LpRt}
-      CATTLE_DB_CATTLE_MYSQL_HOST: rancher-mysql
-      CATTLE_DB_CATTLE_MYSQL_PORT: 3306
-      CATTLE_DB_CATTLE_MYSQL_NAME: cattle
-      CATTLE_DB_CATTLE_USERNAME: cattle
-      CATTLE_DB_CATTLE_PASSWORD: ${MYSQL_PASSWORD:-JKJP2PACGVlhIz3e}
-      CATTLE_K3S_EXEC: "--cluster-init"
+      CATTLE_BOOTSTRAP_PASSWORD: ${CATTLE_BOOTSTRAP_PASSWORD:-10mTsybsmfJVnZhH}
     volumes:
       - ./data/rancher:/var/lib/rancher
-      - ./data/audit_log:/var/log/auditlog
-      - ./data/certs:/etc/rancher/ssl
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - rancher_network
-networks:
-  rancher_network:
-    driver: bridge

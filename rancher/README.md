@@ -29,8 +29,8 @@ docker compose logs -f rancher-server
 
 ### 2. 访问 Rancher
 
-- **HTTPS访问**: https://your-server-ip
-- **HTTP访问**: http://your-server-ip
+- **HTTPS访问**: https://your-server-ip:9443
+- **HTTP访问**: http://your-server-ip:9080
 - **默认用户名**: admin
 - **密码**: 在 init.sh 执行后显示的密码
 
@@ -45,8 +45,8 @@ docker compose logs -f rancher-server
 
 | 服务 | 容器名 | 端口 | 说明 |
 |------|--------|------|------|
-| Rancher Server | rancher-server | 80, 443 | Rancher 管理界面 |
-| MySQL | rancher-mysql | 3306 | 数据库服务 |
+| Rancher Server | rancher-server | 9080, 9443 | Rancher 管理界面 |
+| MySQL | rancher-mysql | 3307 | 数据库服务 |
 
 ## 环境变量
 

@@ -8,6 +8,11 @@ services:
         condition: service_healthy
       drone:
         condition: service_healthy
+    environment:
+      - GITEA_DOMAIN=${GITEA_DOMAIN}
+      - DRONE_DOMAIN=${DRONE_DOMAIN}
+      - GITEA_CERT_NAME=${GITEA_CERT_NAME}
+      - DRONE_CERT_NAME=${DRONE_CERT_NAME}
     ports:
       - "80:80"
       - "443:443"
@@ -15,7 +20,7 @@ services:
       - cicd_net
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./config/nginx/conf.d:/etc/nginx/templates:ro
       - ./data/nginx/logs:/var/log/nginx
       - ./data/nginx/cache:/var/cache/nginx
       - ./data/ssl:/etc/nginx/ssl:ro
@@ -94,7 +99,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/drone:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -112,7 +117,7 @@ services:
       - DRONE_RPC_PROTO=http
       - DRONE_RPC_HOST=drone
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
-      - DRONE_RUNNER_NAME="${HOSTNAME}-runner"
+      - DRONE_RUNNER_NAME="drone-runner"
       - DRONE_RUNNER_CAPACITY=2
       - DRONE_RUNNER_NETWORKS=cicd_net
       - DRONE_DEBUG=false

@@ -271,7 +271,7 @@ print_color $GREEN "✓ Nginx configuration updated"
 
 # Start services
 print_color $YELLOW "Starting services..."
-docker-compose up -d
+docker compose up -d
 
 print_color $GREEN "✓ Services started successfully!"
 
@@ -297,7 +297,7 @@ echo "3. Update .env file with OAuth2 credentials:"
 echo "   DRONE_GITEA_CLIENT_ID='your_client_id'"
 echo "   DRONE_GITEA_CLIENT_SECRET='your_client_secret'"
 echo "   DRONE_USER_CREATE='username:${GITEA_ADMIN_USER},admin:true'"
-echo "4. Restart drone services: docker-compose restart drone drone-runner"
+echo "4. Restart drone services: docker compose restart drone drone-runner"
 
 echo
 print_color $YELLOW "Important Notes:"
@@ -311,4 +311,4 @@ echo "- Configuration saved in .env file"
 
 echo
 print_color $BLUE "For troubleshooting, check logs with:"
-echo "docker-compose logs -f [service_name]"
+echo "docker compose logs -f [service_name]"

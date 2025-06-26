@@ -180,4 +180,4 @@ done
 echo
 
 print_color $BLUE "=== Health Check Complete ==="
-print_color $YELLOW "For detailed logs, run: docker-compose logs -f [service_name]"
+print_color $YELLOW "For detailed logs, run: docker compose logs -f [service_name]"

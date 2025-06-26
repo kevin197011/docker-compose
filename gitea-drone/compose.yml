@@ -25,7 +25,7 @@ services:
       - ./data/nginx/cache:/var/cache/nginx
       - ./data/ssl:/etc/nginx/ssl:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "-H", "Host: gitea.devops.io", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -53,7 +53,7 @@ services:
       - GITEA__server__DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
       - GITEA__server__SSH_DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
       - GITEA__server__ROOT_URL=https://${GITEA_DOMAIN:-${IP_ADDRESS}}
-      - GITEA__security__INSTALL_LOCK=false
+      - GITEA__security__INSTALL_LOCK=true
     ports:
       - "3000:3000" # 直接访问端口
       - "2222:22" # SSH 端口

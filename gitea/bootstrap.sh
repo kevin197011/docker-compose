@@ -136,9 +136,15 @@ show_help() {
     echo "  $0 --help              显示帮助信息"
     echo ""
     echo "功能说明:"
-    echo "  默认模式    : 检查环境 -> 初始化 -> 部署服务"
-    echo "  --init     : 仅创建目录、设置权限、检查端口"
-    echo "  --cleanup  : 清理上级目录中除当前目录外的所有文件"
+    echo "  默认模式    : 检查环境 -> 可选清理 -> 初始化 -> 部署服务"
+    echo "  --init     : 仅创建目录、设置权限、检查端口（含可选清理）"
+    echo "  --cleanup  : 仅清理上级目录中除当前目录外的所有文件"
+    echo ""
+    echo "特性:"
+    echo "  • 自动生成 Runner 注册令牌"
+    echo "  • 智能配置检查和部署"
+    echo "  • 支持清理其他项目目录"
+    echo "  • 健康检查和服务依赖管理"
     echo ""
 }
 
@@ -296,7 +302,21 @@ main() {
             ;;
         "")
             # 默认行为：完整部署
+            log_info "开始 Gitea 完整部署流程..."
+
+            # 检查系统要求
             check_requirements
+
+            # 询问是否需要先清理其他目录
+            echo ""
+            read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                cleanup_other_directories
+                echo ""
+            fi
+
+            # 执行部署步骤
             create_directories
             set_permissions
             check_ports

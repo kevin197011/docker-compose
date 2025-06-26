@@ -42,6 +42,20 @@ docker compose up -d
 docker compose ps
 ```
 
+### 方式三：清理其他项目
+
+在多项目环境中，您可能需要清理其他项目目录以节省空间：
+
+```bash
+# 仅清理其他项目目录
+./bootstrap.sh --cleanup
+
+# 查看帮助信息
+./bootstrap.sh --help
+```
+
+**注意**：清理操作会删除上级目录中除当前gitea目录外的所有文件和目录，请谨慎操作。
+
 ## 📋 系统要求
 
 - Docker Engine 20.10+
@@ -102,6 +116,7 @@ vi .env
    ./bootstrap.sh
    ```
    脚本会自动：
+   - 询问是否清理其他项目目录（可选）
    - 生成随机的全局注册令牌
    - 创建并配置 `.env` 文件
    - 启动所有服务（包括 Act-Runner）

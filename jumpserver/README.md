@@ -1,223 +1,196 @@
 # JumpServer Docker Compose 部署
 
-这是一个基于 Docker Compose 的 JumpServer 堡垒机部署配置。
+## 📖 项目简介
 
-## 组件说明
+开源的堡垒机，提供安全的远程访问解决方案
 
-- **Core**: JumpServer 核心组件，提供 Web API 和管理界面
-- **Koko**: SSH 和 Telnet 协议组件
-- **Lion**: RDP 和 VNC 协议组件
-- **Magnus**: 数据库协议组件
-- **Web**: 前端 Web 界面
-- **MySQL**: 数据库服务
-- **Redis**: 缓存和消息队列服务
+## ✨ 功能特性
 
-## 目录结构
+- 🚀 一键部署，开箱即用
+- 🔧 自动环境检查和初始化
+- 📊 健康检查和服务监控
+- 🛠️ 完整的数据持久化
+- 🔄 支持服务重启和升级
+- 📋 详细的日志记录
+
+## 🚀 快速开始
+
+### 方式一：一键部署（推荐）
+
+```bash
+# 克隆项目
+git clone <repository-url>
+cd jumpserver
+
+# 一键部署
+./bootstrap.sh
+```
+
+### 方式二：分步部署
+
+```bash
+# 1. 初始化环境
+./bootstrap.sh --init
+
+# 2. 启动服务
+docker compose up -d
+
+# 3. 查看状态
+docker compose ps
+```
+
+## 📋 系统要求
+
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- 系统内存: 建议 2GB+
+- 磁盘空间: 建议 10GB+
+
+## 🌐 服务端口
+
+- **80**: JumpServer 服务端口
+- **443**: JumpServer 服务端口
+- **2222**: JumpServer 服务端口
+
+
+## 🔧 配置说明
+
+### 目录结构
 
 ```
 jumpserver/
-├── compose.yml              # Docker Compose 配置文件
-├── config/                  # 配置文件目录
-│   ├── mysql/
-│   │   └── my.cnf          # MySQL 配置文件
-│   └── redis/
-│       └── redis.conf      # Redis 配置文件
-├── data/                   # 数据持久化目录
-│   ├── mysql/              # MySQL 数据目录
-│   ├── redis/              # Redis 数据目录
-│   ├── core/               # Core 组件数据
-│   │   ├── media/          # 媒体文件
-│   │   └── static/         # 静态文件
-│   ├── koko/               # Koko 组件数据
-│   ├── lion/               # Lion 组件数据
-│   └── magnus/             # Magnus 组件数据
-├── logs/                   # 日志目录
-│   ├── core/               # Core 组件日志
-│   ├── koko/               # Koko 组件日志
-│   ├── lion/               # Lion 组件日志
-│   └── magnus/             # Magnus 组件日志
-└── README.md               # 说明文档
+├── bootstrap.sh          # 一体化部署脚本
+├── compose.yml           # Docker Compose 配置
+├── README.md            # 项目文档
+├── data/               # 数据目录
+├── logs/               # 日志目录
+└── config/             # 配置目录
 ```
 
-## 快速开始
+### 环境变量
 
-### 1. 创建必要目录
+主要的环境变量在 `compose.yml` 文件中定义，可以根据需要进行调整。
 
-```bash
-mkdir -p data/{mysql,redis,core/{media,static},koko,lion,magnus}
-mkdir -p logs/{core,koko,lion,magnus}
-```
+## 📊 使用指南
 
-### 2. 设置目录权限
+### 启动服务
 
 ```bash
-# 设置数据目录权限
-chmod -R 755 data/
-chmod -R 755 logs/
-
-# 设置 MySQL 数据目录权限
-sudo chown -R 999:999 data/mysql
-
-# 设置 Redis 数据目录权限
-sudo chown -R 999:999 data/redis
-```
-
-### 3. 启动服务
-
-```bash
-# 启动所有服务
+# 后台启动
 docker compose up -d
 
+# 前台启动（查看日志）
+docker compose up
+```
+
+### 查看状态
+
+```bash
 # 查看服务状态
 docker compose ps
 
-# 查看日志
+# 查看服务日志
 docker compose logs -f
+
+# 查看特定服务日志
+docker compose logs -f <service-name>
 ```
 
-### 4. 访问服务
-
-- **Web 管理界面**: http://localhost
-- **SSH 连接**: localhost:2222
-- **MySQL**: localhost:3306
-- **Redis**: localhost:6379
-
-## 默认账号
-
-**管理员账号**:
-- 用户名: admin
-- 密码: admin
-
-**首次登录后请立即修改默认密码！**
-
-## 重要配置
-
-### 安全配置
-
-```yaml
-# 生产环境请修改以下配置
-SECRET_KEY: "B3f2w8P2PfxIAS7s4URrD9YmSbtqX4vXdPUL217kL9XPUOWrmy"  # 请生成新的密钥
-BOOTSTRAP_TOKEN: "7Q11Vz6R2J6BLAdO"                              # 请生成新的令牌
-```
-
-### 数据库配置
-
-```yaml
-# MySQL 配置
-MYSQL_ROOT_PASSWORD: jumpserver@root    # 请修改密码
-MYSQL_PASSWORD: jumpserver@passwd       # 请修改密码
-```
-
-### Redis 配置
-
-```yaml
-# Redis 配置
-REDIS_PASSWORD: jumpserver@redis        # 请修改密码
-```
-
-## 端口说明
-
-| 服务 | 端口 | 协议 | 说明 |
-|------|------|------|------|
-| Web | 80 | HTTP | Web 管理界面 |
-| Core | 8080 | HTTP | API 服务 |
-| Koko | 2222 | SSH | SSH 连接服务 |
-| Magnus | 30000-30100 | TCP | 数据库协议代理 |
-| MySQL | 3306 | TCP | 数据库服务 |
-| Redis | 6379 | TCP | 缓存服务 |
-
-## 数据备份
-
-### 数据库备份
+### 停止服务
 
 ```bash
-# 备份数据库
-docker compose exec mysql mysqldump -u jumpserver -p jumpserver > backup.sql
+# 停止服务
+docker compose down
 
-# 恢复数据库
-docker compose exec -T mysql mysql -u jumpserver -p jumpserver < backup.sql
+# 停止服务并删除数据卷
+docker compose down -v
 ```
 
-### 文件备份
+## 🔗 访问地址
 
-```bash
-# 备份数据目录
-tar -czf jumpserver-data-$(date +%Y%m%d).tar.gz data/
+服务启动后，可以通过以下地址访问：
 
-# 备份日志目录
-tar -czf jumpserver-logs-$(date +%Y%m%d).tar.gz logs/
-```
+- JumpServer: http://localhost:80
+- JumpServer: http://localhost:443
+- JumpServer: http://localhost:2222
 
-## 故障排除
 
-### 查看日志
+## 🛠️ 故障排除
+
+### 常见问题
+
+1. **端口冲突**
+   - 检查端口是否被占用：`netstat -tulpn | grep <port>`
+   - 修改 `compose.yml` 中的端口映射
+
+2. **权限问题**
+   - 确保当前用户有 Docker 权限：`sudo usermod -aG docker $USER`
+   - 重新登录或重启系统
+
+3. **内存不足**
+   - 检查系统内存使用：`free -h`
+   - 调整 Docker 内存限制
+
+4. **磁盘空间不足**
+   - 检查磁盘空间：`df -h`
+   - 清理 Docker 镜像：`docker system prune -a`
+
+### 日志查看
 
 ```bash
 # 查看所有服务日志
 docker compose logs
 
-# 查看特定服务日志
-docker compose logs core
-docker compose logs mysql
+# 实时查看日志
+docker compose logs -f
+
+# 查看最近100行日志
+docker compose logs --tail=100
 ```
 
-### 重启服务
+## 🔄 升级指南
+
+### 升级服务
 
 ```bash
-# 重启所有服务
-docker compose restart
-
-# 重启特定服务
-docker compose restart core
-```
-
-### 清理和重新部署
-
-```bash
-# 停止并删除所有容器
+# 1. 停止当前服务
 docker compose down
 
-# 删除数据卷（注意：这会删除所有数据）
-docker compose down -v
-
-# 重新启动
-docker compose up -d
-```
-
-## 生产环境注意事项
-
-1. **修改默认密码**: 包括管理员密码、数据库密码、Redis 密码
-2. **生成新的密钥**: SECRET_KEY 和 BOOTSTRAP_TOKEN
-3. **启用 HTTPS**: 配置 SSL 证书
-4. **防火墙配置**: 只开放必要的端口
-5. **定期备份**: 设置自动备份策略
-6. **监控告警**: 配置服务监控和告警
-7. **日志轮转**: 配置日志轮转策略
-
-## 版本升级
-
-```bash
-# 拉取最新镜像
+# 2. 拉取最新镜像
 docker compose pull
 
-# 重启服务
+# 3. 重新启动
 docker compose up -d
 ```
 
-## 技术支持
-
-- [JumpServer 官方文档](https://docs.jumpserver.org/)
-- [JumpServer GitHub](https://github.com/jumpserver/jumpserver)
-- [Docker Hub](https://hub.docker.com/u/jumpserver)
-
-## 清理其他目录
-
-如果您需要清理除了预定义项目目录之外的所有其他目录，可以使用初始化脚本的清理功能：
+### 备份数据
 
 ```bash
-./init.sh --cleanup
+# 备份数据目录
+tar -czf backup-$(date +%Y%m%d).tar.gz data/
+
+# 备份配置文件
+cp compose.yml compose.yml.backup
 ```
 
-此命令会安全地清理上级目录中除了所有项目目录之外的文件和目录，并在执行前要求用户确认。
+## 📚 相关资源
 
-**注意**: 清理功能会保留所有预定义的项目目录，但会删除其他文件和目录，请谨慎使用！
+- [官方文档](https://docs.docker.com/compose/)
+- [Docker Hub]()
+- [GitHub 仓库]()
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request 来改进这个项目。
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](../LICENSE) 文件了解详情。
+
+## ⭐ Star History
+
+如果这个项目对你有帮助，请给它一个星标！
+
+---
+
+**注意**: 首次部署时，某些服务可能需要额外的配置步骤，请参考具体服务的官方文档。

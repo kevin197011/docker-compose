@@ -195,6 +195,41 @@ check_ports() {
     log_success "端口检查完成"
 }
 
+# 更新 OAuth2 配置
+update_oauth_config() {
+    if [[ ! -f ".env" ]]; then
+        log_error ".env 文件不存在，请先运行完整部署"
+        exit 1
+    fi
+
+    echo "配置 Drone OAuth2 设置"
+    echo ""
+    echo "请在 Gitea 中创建 OAuth2 应用："
+    echo "1. 访问 Gitea: http://$(grep IP_ADDRESS .env | cut -d= -f2):3000"
+    echo "2. 登录管理员账户"
+    echo "3. 进入 设置 -> 应用 -> 管理 OAuth2 应用程序"
+    echo "4. 创建新应用，设置重定向 URI 为: http://$(grep IP_ADDRESS .env | cut -d= -f2):3001/login"
+    echo ""
+
+    read -p "请输入 OAuth2 Client ID: " client_id
+    read -p "请输入 OAuth2 Client Secret: " client_secret
+
+    if [[ -z "$client_id" || -z "$client_secret" ]]; then
+        log_error "Client ID 和 Client Secret 不能为空"
+        exit 1
+    fi
+
+    # 更新 .env 文件
+    sed -i.bak "s/^DRONE_GITEA_CLIENT_ID=.*/DRONE_GITEA_CLIENT_ID=${client_id}/" .env
+    sed -i.bak "s/^DRONE_GITEA_CLIENT_SECRET=.*/DRONE_GITEA_CLIENT_SECRET=${client_secret}/" .env
+
+    log_success "OAuth2 配置已更新"
+    echo ""
+    echo "重启服务以应用新配置:"
+    echo "  docker compose restart drone"
+    echo ""
+}
+
 # 显示帮助信息
 show_help() {
     echo "Gitea + Drone CI/CD 一体化部署脚本"
@@ -202,12 +237,14 @@ show_help() {
     echo "用法:"
     echo "  $0                      完整部署（推荐）"
     echo "  $0 --init              仅初始化环境"
+    echo "  $0 --oauth             配置 OAuth2 设置"
     echo "  $0 --cleanup           清理其他项目目录"
     echo "  $0 --help              显示帮助信息"
     echo ""
     echo "功能说明:"
     echo "  默认模式    : 检查环境 -> 初始化 -> 部署服务"
     echo "  --init     : 仅创建目录、设置权限、检查端口"
+    echo "  --oauth    : 配置 Drone 的 OAuth2 设置"
     echo "  --cleanup  : 清理上级目录中除当前目录外的所有文件"
     echo ""
     echo "环境变量:"
@@ -264,6 +301,10 @@ main() {
             init_only
             exit 0
             ;;
+        --oauth)
+            update_oauth_config
+            exit 0
+            ;;
         --cleanup)
             cleanup_other_directories
             exit 0
@@ -301,34 +342,78 @@ main() {
     set_permissions
     check_ports
 
-    # 设置环境变量
-    export HOSTNAME=$(hostname)
-    export DRONE_VERSION=${DRONE_VERSION:-2.23.0}
-    export DRONE_RUNNER_VERSION=${DRONE_RUNNER_VERSION:-1.8.3}
-    export GITEA_VERSION=${GITEA_VERSION:-1.21.5}
-    export IP_ADDRESS=$(get_ip_address)
-    export GITEA_ADMIN_USER=${GITEA_ADMIN_USER:-"root"}
-    export DRONE_RPC_SECRET=$(generate_secret)
-    export DRONE_USER_CREATE="username:${GITEA_ADMIN_USER},machine:false,admin:true,token:${DRONE_RPC_SECRET}"
-    export DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID:-""}
-    export DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET:-""}
+        # 检查是否存在 .env 文件
+    if [[ -f ".env" ]]; then
+        log_info "发现现有的 .env 文件，加载配置..."
+        source .env
+        HOSTNAME_VAR=${HOSTNAME:-$(hostname)}
+        DRONE_VERSION_VAR=${DRONE_VERSION:-2.23.0}
+        DRONE_RUNNER_VERSION_VAR=${DRONE_RUNNER_VERSION:-1.8.3}
+        GITEA_VERSION_VAR=${GITEA_VERSION:-1.21.5}
+        IP_ADDRESS_VAR=${IP_ADDRESS:-$(get_ip_address)}
+        GITEA_ADMIN_USER_VAR=${GITEA_ADMIN_USER:-"root"}
+        DRONE_RPC_SECRET_VAR=${DRONE_RPC_SECRET:-$(generate_secret)}
+        DRONE_USER_CREATE_VAR=${DRONE_USER_CREATE:-"username:${GITEA_ADMIN_USER_VAR},machine:false,admin:true,token:${DRONE_RPC_SECRET_VAR}"}
+        DRONE_GITEA_CLIENT_ID_VAR=${DRONE_GITEA_CLIENT_ID:-""}
+        DRONE_GITEA_CLIENT_SECRET_VAR=${DRONE_GITEA_CLIENT_SECRET:-""}
+        log_success "已加载现有配置"
+    else
+        # 设置环境变量
+        HOSTNAME_VAR=$(hostname)
+        DRONE_VERSION_VAR=${DRONE_VERSION:-2.23.0}
+        DRONE_RUNNER_VERSION_VAR=${DRONE_RUNNER_VERSION:-1.8.3}
+        GITEA_VERSION_VAR=${GITEA_VERSION:-1.21.5}
+        IP_ADDRESS_VAR=$(get_ip_address)
+        GITEA_ADMIN_USER_VAR=${GITEA_ADMIN_USER:-"root"}
+        DRONE_RPC_SECRET_VAR=$(generate_secret)
+        DRONE_USER_CREATE_VAR="username:${GITEA_ADMIN_USER_VAR},machine:false,admin:true,token:${DRONE_RPC_SECRET_VAR}"
+        DRONE_GITEA_CLIENT_ID_VAR=${DRONE_GITEA_CLIENT_ID:-""}
+        DRONE_GITEA_CLIENT_SECRET_VAR=${DRONE_GITEA_CLIENT_SECRET:-""}
+
+        # 创建 .env 文件
+        log_info "创建环境变量配置文件..."
+        cat > .env << EOF
+# Gitea + Drone CI/CD 环境变量配置
+# 自动生成于: $(date)
+
+# 基础配置
+HOSTNAME=${HOSTNAME_VAR}
+IP_ADDRESS=${IP_ADDRESS_VAR}
+
+# 版本配置
+GITEA_VERSION=${GITEA_VERSION_VAR}
+DRONE_VERSION=${DRONE_VERSION_VAR}
+DRONE_RUNNER_VERSION=${DRONE_RUNNER_VERSION_VAR}
+
+# 用户配置
+GITEA_ADMIN_USER=${GITEA_ADMIN_USER_VAR}
+
+# Drone 配置
+DRONE_RPC_SECRET=${DRONE_RPC_SECRET_VAR}
+DRONE_USER_CREATE=${DRONE_USER_CREATE_VAR}
+DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID_VAR}
+DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET_VAR}
+EOF
+
+        log_success "环境变量配置文件已创建: .env"
+    fi
 
     # 显示IP获取结果
-    if [[ "$IP_ADDRESS" == "localhost" ]]; then
+    if [[ "$IP_ADDRESS_VAR" == "localhost" ]]; then
         log_warn "无法自动获取IPv4地址，使用默认值: localhost"
     else
-        log_success "自动获取到IP地址: $IP_ADDRESS"
+        log_success "自动获取到IP地址: $IP_ADDRESS_VAR"
     fi
 
     # 显示配置信息
     log_info "配置信息:"
-    echo "  主机名: $HOSTNAME"
-    echo "  IP地址: $IP_ADDRESS"
-    echo "  Gitea版本: $GITEA_VERSION"
-    echo "  Drone版本: $DRONE_VERSION"
-    echo "  Drone Runner版本: $DRONE_RUNNER_VERSION"
-    echo "  管理员用户: $GITEA_ADMIN_USER"
-    echo "  RPC密钥: ${DRONE_RPC_SECRET:0:8}..."
+    echo "  主机名: $HOSTNAME_VAR"
+    echo "  IP地址: $IP_ADDRESS_VAR"
+    echo "  Gitea版本: $GITEA_VERSION_VAR"
+    echo "  Drone版本: $DRONE_VERSION_VAR"
+    echo "  Drone Runner版本: $DRONE_RUNNER_VERSION_VAR"
+    echo "  管理员用户: $GITEA_ADMIN_USER_VAR"
+    echo "  RPC密钥: ${DRONE_RPC_SECRET_VAR:0:8}..."
     echo ""
 
     # 启动服务
@@ -344,12 +429,12 @@ main() {
     log_success "部署完成！"
     echo ""
     echo "🌐 访问地址:"
-    echo "  Gitea: http://${IP_ADDRESS}:3000/"
-    echo "  Drone: http://${IP_ADDRESS}:3001/"
-    echo "  Drone Runner: http://${IP_ADDRESS}:3002/"
+    echo "  Gitea: http://${IP_ADDRESS_VAR}:3000/"
+    echo "  Drone: http://${IP_ADDRESS_VAR}:3001/"
+    echo "  Drone Runner: http://${IP_ADDRESS_VAR}:3002/"
     echo ""
     echo "👤 默认账户:"
-    echo "  用户名: $GITEA_ADMIN_USER"
+    echo "  用户名: $GITEA_ADMIN_USER_VAR"
     echo "  密码: 首次访问时设置"
     echo ""
     echo "🔧 配置说明:"
@@ -357,7 +442,7 @@ main() {
     echo "  2. 在 Gitea 中创建 OAuth2 应用获取 Client ID 和 Secret"
     echo "  3. 使用获取的凭据配置 Drone"
     echo ""
-    echo "📝 RPC 密钥 (用于 Drone 配置): $DRONE_RPC_SECRET"
+    echo "📝 RPC 密钥 (用于 Drone 配置): $DRONE_RPC_SECRET_VAR"
     echo ""
     echo "📊 查看服务状态: docker compose ps"
     echo "📋 查看日志: docker compose logs -f"

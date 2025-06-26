@@ -1,0 +1,48 @@
+name: CI Pipeline
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # Add your test commands here
+          # npm test
+      - name: Build project
+        run: |
+          echo "Building project..."
+          # Add your build commands here
+          # npm run build
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |-
+          if [ -f Dockerfile ]; then
+            docker build -t my-app:latest .
+            echo "Docker image built successfully"
+          else
+            echo "No Dockerfile found, skipping Docker build"
+          fi

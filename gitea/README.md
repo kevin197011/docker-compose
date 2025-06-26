@@ -1,8 +1,8 @@
-# Gitea Docker Compose 部署
+# Gitea with Act-Runner Docker Compose 部署
 
 ## 📖 项目简介
 
-轻量级的 Git 服务，类似于 GitHub 的自托管解决方案
+轻量级的 Git 服务，类似于 GitHub 的自托管解决方案，集成了 Gitea Actions 和 Act-Runner 支持，提供完整的 CI/CD 功能
 
 ## ✨ 功能特性
 
@@ -12,6 +12,9 @@
 - 🛠️ 完整的数据持久化
 - 🔄 支持服务重启和升级
 - 📋 详细的日志记录
+- ⚡ 集成 Gitea Actions 和 Act-Runner
+- 🔧 自动注册 Runner 到 Gitea 实例
+- 🐳 支持 Docker 容器和主机模式执行
 
 ## 🚀 快速开始
 
@@ -48,8 +51,9 @@ docker compose ps
 
 ## 🌐 服务端口
 
-- **3000**: Gitea 服务端口
-- **2222**: Gitea 服务端口
+- **3000**: Gitea Web 服务端口
+- **2222**: Gitea SSH 服务端口
+- **5432**: PostgreSQL 数据库端口
 
 
 ## 🔧 配置说明
@@ -61,14 +65,93 @@ gitea/
 ├── bootstrap.sh          # 一体化部署脚本
 ├── compose.yml           # Docker Compose 配置
 ├── README.md            # 项目文档
+├── .env.example         # 环境变量示例文件
 ├── data/               # 数据目录
+│   ├── gitea/          # Gitea 数据
+│   ├── postgres/       # PostgreSQL 数据
+│   └── act-runner/     # Act-Runner 数据
 ├── logs/               # 日志目录
 └── config/             # 配置目录
+    └── act-runner      # Act-Runner 配置文件
 ```
 
 ### 环境变量
 
-主要的环境变量在 `compose.yml` 文件中定义，可以根据需要进行调整。
+复制 `.env.example` 到 `.env` 并配置以下变量：
+
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑环境变量
+vi .env
+```
+
+主要环境变量：
+- `GITEA_RUNNER_REGISTRATION_TOKEN`: 全局 Runner 注册令牌（推荐，自动生成）
+- `ACT_RUNNER_TOKEN`: 手动 Runner 注册令牌（兼容旧方式）
+- `ACT_RUNNER_NAME`: Runner 名称（可选）
+- `ACT_RUNNER_LABELS`: Runner 标签（可选）
+
+### Act-Runner 配置方式
+
+#### 方式一：自动生成令牌（推荐）
+
+1. **一键部署**：
+   ```bash
+   ./bootstrap.sh
+   ```
+   脚本会自动：
+   - 生成随机的全局注册令牌
+   - 创建并配置 `.env` 文件
+   - 启动所有服务（包括 Act-Runner）
+
+2. **访问 Gitea 完成初始设置**：
+   - 访问: http://localhost:3000
+   - 完成 Gitea 初始设置
+   - Act-Runner 会自动注册并显示在管理面板
+
+#### 方式二：手动获取令牌（兼容方式）
+
+1. **启动基础服务**：
+   ```bash
+   docker compose up -d postgres gitea
+   ```
+
+2. **访问 Gitea 并完成初始设置**：
+   - 访问: http://localhost:3000
+   - 完成 Gitea 初始设置
+
+3. **获取 Runner 注册令牌**：
+   - 进入管理面板: http://localhost:3000/-/admin/actions/runners
+   - 复制注册令牌
+
+4. **配置环境变量**：
+   ```bash
+   # 编辑 .env 文件，注释掉 GITEA_RUNNER_REGISTRATION_TOKEN
+   # GITEA_RUNNER_REGISTRATION_TOKEN=...
+   ACT_RUNNER_TOKEN=your_manual_token_here
+   ```
+
+5. **启动 Act-Runner**：
+   ```bash
+   docker compose up -d act-runner
+   ```
+
+### 手动生成注册令牌
+
+如果您想要手动生成全局注册令牌，可以使用以下命令：
+
+```bash
+# 使用 openssl 生成随机令牌（推荐）
+openssl rand -hex 24
+
+# 或者使用 uuidgen
+uuidgen | tr -d '-'
+
+# 然后在 .env 文件中设置
+GITEA_RUNNER_REGISTRATION_TOKEN=生成的令牌
+```
 
 ## 📊 使用指南
 
@@ -109,8 +192,28 @@ docker compose down -v
 
 服务启动后，可以通过以下地址访问：
 
-- Gitea: http://localhost:3000
-- Gitea: http://localhost:2222
+- **Gitea Web**: http://localhost:3000
+- **Gitea SSH**: ssh://git@localhost:2222
+- **PostgreSQL**: localhost:5432
+
+### Gitea Actions 使用
+
+创建 `.gitea/workflows/ci.yml` 文件来定义工作流：
+
+```yaml
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # 添加你的测试命令
+```
 
 
 ## 🛠️ 故障排除

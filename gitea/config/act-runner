@@ -1,0 +1,46 @@
+# act-runner configuration file
+# This is the default configuration file for act-runner
+
+log:
+  level: info
+
+runner:
+  # File to store the registration result
+  file: .runner
+  # Capacity of the runner
+  capacity: 1
+  # Timeout for a single job
+  timeout: 3h
+  # Whether to use the insecure mode for HTTPS requests
+  insecure: false
+  # Time to fetch new jobs from the server
+  fetch_timeout: 5s
+  # Interval to fetch new jobs from the server
+  fetch_interval: 2s
+  # Labels of the runner - these are used to match jobs
+  # You can set custom labels or use the default ones
+  labels: []
+
+cache:
+  # Enable cache server
+  enabled: false
+  # Cache server directory
+  dir: ""
+  # Cache server host
+  host: ""
+  # Cache server port
+  port: 0
+
+container:
+  # Which network to use for the job containers
+  network: ""
+  # Whether to use privileged mode
+  privileged: false
+  # And other options to be used when the container is created
+  options:
+  # The parent directory of a job's working directory
+  workdir_parent: ""
+
+host:
+  # The parent directory of a job's working directory
+  workdir_parent: ""

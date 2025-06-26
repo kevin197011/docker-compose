@@ -10,6 +10,11 @@ services:
       - DB_NAME=gitea
       - DB_USER=gitea
       - DB_PASSWD=gitea@passwd
+      # Enable Gitea Actions
+      - GITEA__actions__ENABLED=true
+      - GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false
+      # Pre-set global runner registration token
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-}
     ports:
       - "3000:3000"
       - "2222:22"
@@ -20,6 +25,37 @@ services:
       - postgres
     networks:
       - gitea_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  act-runner:
+    image: gitea/act_runner:nightly
+    container_name: gitea-act-runner
+    restart: unless-stopped
+    depends_on:
+      gitea:
+        condition: service_healthy
+    environment:
+      - CONFIG_FILE=/config.yaml
+      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-${ACT_RUNNER_TOKEN:-}}
+      - GITEA_RUNNER_NAME=${ACT_RUNNER_NAME:-gitea-runner}
+      - GITEA_RUNNER_LABELS=${ACT_RUNNER_LABELS:-ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye,ubuntu-20.04:docker://node:20-bullseye}
+    volumes:
+      - ./config/act-runner:/config.yaml:ro
+      - ./data/act-runner:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitea_net
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "act_runner"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
   postgres:
     image: postgres:latest
     container_name: postgres

@@ -177,6 +177,107 @@ init_only() {
     echo ""
 }
 
+# 生成随机令牌
+generate_runner_token() {
+    if command -v openssl &> /dev/null; then
+        openssl rand -hex 24
+    else
+        # 如果没有openssl，使用date和随机数生成
+        echo "$(date +%s)$(shuf -i 1000-9999 -n 1)" | sha256sum | cut -c1-48
+    fi
+}
+
+# 创建.env文件
+create_env_file() {
+    if [[ ! -f .env ]]; then
+        log_info "创建环境配置文件..."
+        cp .env.example .env
+
+        # 自动生成runner令牌
+        log_info "自动生成 Runner 注册令牌..."
+        GENERATED_TOKEN=$(generate_runner_token)
+
+        # 替换.env文件中的令牌
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS
+            sed -i '' "s/your_generated_token_here/$GENERATED_TOKEN/" .env
+        else
+            # Linux
+            sed -i "s/your_generated_token_here/$GENERATED_TOKEN/" .env
+        fi
+
+        log_success "环境配置文件创建完成，已自动生成 Runner 令牌"
+        log_info "生成的令牌: $GENERATED_TOKEN"
+    else
+        log_success ".env 文件已存在"
+    fi
+}
+
+# 检查Act-Runner配置
+check_act_runner_config() {
+    log_info "检查Act-Runner配置..."
+
+    if [[ -f .env ]]; then
+        source .env
+
+        # 优先检查全局令牌（推荐方式）
+        if [[ -n "${GITEA_RUNNER_REGISTRATION_TOKEN:-}" ]] && [[ "${GITEA_RUNNER_REGISTRATION_TOKEN}" != "your_generated_token_here" ]]; then
+            log_success "使用全局 Runner 注册令牌（推荐方式）"
+            return 0
+        # 检查手动令牌（兼容方式）
+        elif [[ -n "${ACT_RUNNER_TOKEN:-}" ]] && [[ "${ACT_RUNNER_TOKEN}" != "your_registration_token_here" ]]; then
+            log_success "使用手动 Runner 注册令牌"
+            return 0
+        else
+            log_warn "Runner 注册令牌未配置或使用默认值"
+            log_info "当前配置使用自动生成的全局令牌，无需手动获取"
+            return 0
+        fi
+    else
+        log_warn ".env 文件不存在，请先创建"
+        return 1
+    fi
+}
+
+# 部署服务
+deploy_services() {
+    log_info "开始部署服务..."
+
+    # 检查环境文件
+    create_env_file
+
+    # 首先启动基础服务
+    log_info "启动 Gitea 和 PostgreSQL..."
+    docker compose up -d postgres gitea
+
+    # 等待服务启动
+    log_info "等待服务启动..."
+    sleep 10
+
+    # 检查Act-Runner配置
+    if check_act_runner_config; then
+        log_info "启动 Act-Runner..."
+        docker compose up -d act-runner
+    else
+        log_warn "跳过 Act-Runner 启动，请配置后手动启动"
+    fi
+
+    # 显示服务状态
+    log_info "服务状态："
+    docker compose ps
+
+    log_success "部署完成！"
+    echo ""
+    echo "🌐 访问地址："
+    echo "  - Gitea: http://localhost:3000"
+    echo "  - PostgreSQL: localhost:5432"
+    echo ""
+    echo "📝 下一步："
+    echo "  1. 访问 Gitea 完成初始设置"
+    echo "  2. 配置 Act-Runner 注册令牌（如果尚未配置）"
+    echo "  3. 查看日志: docker compose logs -f"
+}
+
 # 主函数
 main() {
     # 处理命令行参数
@@ -195,6 +296,11 @@ main() {
             ;;
         "")
             # 默认行为：完整部署
+            check_requirements
+            create_directories
+            set_permissions
+            check_ports
+            deploy_services
             ;;
         *)
             log_error "未知参数: $1"
@@ -202,45 +308,6 @@ main() {
             exit 1
             ;;
     esac
-
-    log_info "开始 Gitea 一体化部署..."
-
-    # 检查系统要求
-    check_requirements
-
-    # 询问是否需要先清理其他目录
-    echo ""
-    read -p "是否需要先清理其他项目目录? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cleanup_other_directories
-        echo ""
-    fi
-
-    # 执行初始化步骤
-    create_directories
-    set_permissions
-    check_ports
-
-    # 启动服务
-    log_info "启动服务..."
-    docker compose up -d
-
-    # 等待服务启动
-    log_info "等待服务启动完成..."
-    sleep 10
-
-    # 显示访问信息
-    echo ""
-    log_success "Gitea 部署完成！"
-    echo ""
-    echo "🌐 访问地址:"
-    echo "  Gitea: http://localhost:3000"
-    echo "  Gitea: http://localhost:2222"
-    echo ""
-    echo "📊 查看服务状态: docker compose ps"
-    echo "📋 查看日志: docker compose logs -f"
-    echo ""
 }
 
 # 运行主函数

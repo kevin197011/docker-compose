@@ -40,6 +40,7 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - RUN_MODE=prod
+      - PROTOCOL=https
       - DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
       - SSH_DOMAIN=${GITEA_DOMAIN:-${IP_ADDRESS}}
       - HTTP_PORT=3000
@@ -114,7 +115,7 @@ services:
     environment:
       # https://docs.drone.io/runner/docker/installation/linux/
       # https://docs.drone.io/server/metrics/
-      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_PROTO=https
       - DRONE_RPC_HOST=drone
       - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
       - DRONE_RUNNER_NAME="drone-runner"

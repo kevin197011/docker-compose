@@ -14,7 +14,21 @@
 
 ## 快速开始
 
-### 1. 初始化环境
+### 1. 系统准备
+
+#### CentOS 9 / RHEL 9 系统
+```bash
+# 首先运行系统准备脚本（需要 root 权限）
+sudo ./centos9-setup.sh
+
+# 重启系统
+sudo reboot
+```
+
+#### 其他系统
+确保已安装 Docker 和 Docker Compose。
+
+### 2. 初始化环境
 
 ```bash
 # 运行初始化脚本（自动生成密码）
@@ -27,14 +41,14 @@ docker compose up -d
 docker compose logs -f rancher-server
 ```
 
-### 2. 访问 Rancher
+### 3. 访问 Rancher
 
 - **HTTPS访问**: https://your-server-ip
 - **HTTP访问**: http://your-server-ip
 - **默认用户名**: admin
 - **密码**: 在 init.sh 执行后显示的密码
 
-### 3. 首次配置
+### 4. 首次配置
 
 1. 登录后设置 Server URL
 2. 创建或导入 Kubernetes 集群
@@ -170,6 +184,24 @@ tar xzf rancher_data_backup.tar.gz
    docker compose down
    rm -rf data/rancher/*
    docker compose up -d
+   ```
+
+3. **CentOS 9 / RHEL 9 特定问题**
+   ```bash
+   # 检查 SELinux 状态
+   sestatus
+
+   # 检查防火墙状态
+   firewall-cmd --list-all
+
+   # 检查 cgroup v2
+   ls /sys/fs/cgroup/
+
+   # 如果容器无法启动，检查 SELinux 日志
+   ausearch -m avc -ts recent
+
+   # 临时禁用 SELinux（不推荐生产环境）
+   sudo setenforce 0
    ```
 
 3. **集群注册失败**

@@ -103,9 +103,40 @@ vi .env
 
 主要环境变量：
 - `GITEA_RUNNER_REGISTRATION_TOKEN`: 全局 Runner 注册令牌（推荐，自动生成）
+- `GITEA_INSTANCE_URL`: Gitea 实例访问地址（可动态配置）
 - `ACT_RUNNER_TOKEN`: 手动 Runner 注册令牌（兼容旧方式）
 - `ACT_RUNNER_NAME`: Runner 名称（可选）
 - `ACT_RUNNER_LABELS`: Runner 标签（可选）
+
+#### 动态配置 Gitea 实例地址
+
+`GITEA_INSTANCE_URL` 环境变量控制 Act-Runner 如何连接到 Gitea 实例：
+
+```bash
+# 内部访问（默认，适用于容器间通信）
+GITEA_INSTANCE_URL=http://gitea:3000
+
+# 外部IP访问（用于CI/CD或外部Runner）
+GITEA_INSTANCE_URL=http://192.168.1.19:3000
+
+# 域名访问
+GITEA_INSTANCE_URL=http://gitea.yourdomain.com
+```
+
+**自动获取IP启动**：
+
+```bash
+# 使用内部地址启动（默认）
+./start.sh
+
+# 自动获取外部IP并启动
+USE_EXTERNAL_IP=true ./start.sh
+
+# 指定端口
+GITEA_PORT=3000 USE_EXTERNAL_IP=true ./start.sh
+```
+
+这对于解决 CI/CD 中的主机名解析问题特别有用。
 
 ### 预配置的Gitea设置
 

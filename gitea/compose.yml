@@ -15,10 +15,6 @@ services:
       - GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false
       # SSH port configuration
       - GITEA__server__SSH_PORT=2222
-      # Configure external URLs to fix CI/CD hostname resolution
-      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-http://localhost:3000/}
-      - GITEA__server__DOMAIN=${GITEA_DOMAIN:-localhost}
-      - GITEA__server__HTTP_PORT=3000
       # Pre-set global runner registration token
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-}
     ports:
@@ -31,7 +27,6 @@ services:
       - postgres
     networks:
       - gitea_net
-      - default
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
       interval: 30s
@@ -47,7 +42,7 @@ services:
         condition: service_healthy
     environment:
       - CONFIG_FILE=/config.yaml
-      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL:-http://gitea:3000}
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-${ACT_RUNNER_TOKEN:-}}
       - GITEA_RUNNER_NAME=${ACT_RUNNER_NAME:-gitea-runner}
       - GITEA_RUNNER_LABELS=${ACT_RUNNER_LABELS:-ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye,ubuntu-20.04:docker://node:20-bullseye}
@@ -57,7 +52,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - gitea_net
-      - default
     healthcheck:
       test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "act_runner"]
       interval: 30s
@@ -76,12 +70,6 @@ services:
     restart: always
     networks:
       - gitea_net
-      - default
 networks:
   gitea_net:
     name: gitea_net
-    driver: bridge
-  # 添加默认网络，允许外部服务连接
-  default:
-    name: gitea_default
-    driver: bridge

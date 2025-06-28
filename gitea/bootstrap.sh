@@ -235,15 +235,13 @@ create_env_file() {
         log_info "自动生成 Runner 注册令牌..."
         GENERATED_TOKEN=$(generate_runner_token)
 
-        # 替换.env文件中的令牌 - 使用精确的正则匹配替换整行
+        # 替换.env文件中的令牌 - 使用精确的正则匹配替换第一个匹配行
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS - 匹配包含your_generated_token_here的行，替换整行
-            sed -i '' "/^GITEA_RUNNER_REGISTRATION_TOKEN=.*$/c\\
-GITEA_RUNNER_REGISTRATION_TOKEN=$GENERATED_TOKEN" .env
+            # macOS - 只替换第一个匹配的GITEA_RUNNER_REGISTRATION_TOKEN行
+            sed -i '' "1,/^GITEA_RUNNER_REGISTRATION_TOKEN=.*/{s/^GITEA_RUNNER_REGISTRATION_TOKEN=.*/GITEA_RUNNER_REGISTRATION_TOKEN=$GENERATED_TOKEN/;}" .env
         else
-            # Linux - 匹配包含your_generated_token_here的行，替换整行
-            sed -i "/^GITEA_RUNNER_REGISTRATION_TOKEN=.*$/c\\
-GITEA_RUNNER_REGISTRATION_TOKEN=$GENERATED_TOKEN" .env
+            # Linux - 只替换第一个匹配的GITEA_RUNNER_REGISTRATION_TOKEN行
+            sed -i "0,/^GITEA_RUNNER_REGISTRATION_TOKEN=.*/{s/^GITEA_RUNNER_REGISTRATION_TOKEN=.*/GITEA_RUNNER_REGISTRATION_TOKEN=$GENERATED_TOKEN/;}" .env
         fi
 
         log_success "环境配置文件创建完成，已自动生成 Runner 令牌"
@@ -279,15 +277,13 @@ configure_gitea_instance_url() {
             # 备份原始文件
             cp .env .env.bak
 
-            # 更新GITEA_INSTANCE_URL - 使用精确的正则匹配替换整行
+            # 更新GITEA_INSTANCE_URL - 使用精确的正则匹配替换第一个匹配行
             if [[ "$OSTYPE" == "darwin"* ]]; then
-                # macOS - 匹配以GITEA_INSTANCE_URL=开头的行，替换整行
-                sed -i '' "/^GITEA_INSTANCE_URL=.*$/c\\
-GITEA_INSTANCE_URL=${NEW_URL}" .env
+                # macOS - 只替换第一个匹配的GITEA_INSTANCE_URL行
+                sed -i '' "1,/^GITEA_INSTANCE_URL=.*/{s|^GITEA_INSTANCE_URL=.*|GITEA_INSTANCE_URL=${NEW_URL}|;}" .env
             else
-                # Linux - 匹配以GITEA_INSTANCE_URL=开头的行，替换整行
-                sed -i "/^GITEA_INSTANCE_URL=.*$/c\\
-GITEA_INSTANCE_URL=${NEW_URL}" .env
+                # Linux - 只替换第一个匹配的GITEA_INSTANCE_URL行
+                sed -i "0,/^GITEA_INSTANCE_URL=.*/{s|^GITEA_INSTANCE_URL=.*|GITEA_INSTANCE_URL=${NEW_URL}|;}" .env
             fi
 
             log_success "已配置 Gitea 实例地址为: $NEW_URL"

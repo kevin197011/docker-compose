@@ -33,7 +33,7 @@ cache:
 
 container:
   # Which network to use for the job containers
-  network: ""
+  network: "gitea_net"
   # Whether to use privileged mode
   privileged: false
   # And other options to be used when the container is created

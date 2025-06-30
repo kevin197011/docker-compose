@@ -83,12 +83,86 @@ check_requirements() {
     log_success "系统要求检查通过"
 }
 
+# 创建或更新.env文件
+create_env_file() {
+    log_info "创建/更新 .env 配置文件..."
+
+    # 如果.env文件不存在，询问配置信息
+    if [ ! -f .env ]; then
+        echo ""
+        read -p "请输入Confluence域名 (默认: wiki.devops.io): " confluence_domain
+        confluence_domain=${confluence_domain:-wiki.devops.io}
+
+        # 提取域名主体部分（去掉前缀）
+        domain_base=$(echo "$confluence_domain" | sed 's/^[^.]*\.//')
+
+        # 创建.env文件
+        cat > .env << EOF
+# Confluence Configuration
+CONFLUENCE_DOMAIN=${confluence_domain}
+
+# Database Configuration
+MYSQL_DATABASE=confluence
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_USER=confluence
+MYSQL_PASSWORD=123456
+
+# Time Zone
+TZ=Asia/Shanghai
+
+# Nginx SSL Configuration
+SSL_CERTIFICATE=${domain_base}.crt
+SSL_CERTIFICATE_KEY=${domain_base}.key
+EOF
+        log_success ".env 配置文件创建完成"
+    else
+        log_warn "检测到已存在的 .env 文件"
+        echo ""
+        read -p "是否要重新配置? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # 备份原有的.env文件
+            cp .env .env.backup
+            log_info "已备份原有配置到 .env.backup"
+
+            # 重新配置
+            read -p "请输入Confluence域名 (默认: wiki.devops.io): " confluence_domain
+            confluence_domain=${confluence_domain:-wiki.devops.io}
+
+            # 提取域名主体部分（去掉前缀）
+            domain_base=$(echo "$confluence_domain" | sed 's/^[^.]*\.//')
+
+            # 更新.env文件
+            cat > .env << EOF
+# Confluence Configuration
+CONFLUENCE_DOMAIN=${confluence_domain}
+
+# Database Configuration
+MYSQL_DATABASE=confluence
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_USER=confluence
+MYSQL_PASSWORD=123456
+
+# Time Zone
+TZ=Asia/Shanghai
+
+# Nginx SSL Configuration
+SSL_CERTIFICATE=${domain_base}.crt
+SSL_CERTIFICATE_KEY=${domain_base}.key
+EOF
+            log_success ".env 配置文件更新完成"
+        else
+            log_info "保持现有 .env 配置不变"
+        fi
+    fi
+}
+
 # 创建基本目录结构
 create_directories() {
     log_info "创建目录结构..."
 
     # 根据项目需要创建目录
-    mkdir -p data logs config
+    mkdir -p data logs config ssl
 
     log_success "目录结构创建完成"
 }
@@ -137,6 +211,40 @@ show_help() {
     echo ""
 }
 
+# 从模板生成配置文件
+generate_config_files() {
+    log_info "从模板生成配置文件..."
+
+    # 确保.env文件存在
+    if [ ! -f .env ]; then
+        log_error "未找到.env文件，请先运行初始化"
+        exit 1
+    fi
+
+    # 加载环境变量
+    set -a
+    source .env
+    set +a
+
+    # 生成nginx配置
+    log_info "生成 nginx.conf..."
+    if [ -f templates/nginx.conf.tmpl ]; then
+        envsubst '${CONFLUENCE_DOMAIN} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' < templates/nginx.conf.tmpl > nginx.conf
+        log_success "nginx.conf 生成完成"
+    else
+        log_error "未找到 nginx.conf.tmpl 模板文件"
+    fi
+
+    # 生成server.xml
+    log_info "生成 server.xml..."
+    if [ -f templates/server.xml.tmpl ]; then
+        envsubst '${CONFLUENCE_DOMAIN}' < templates/server.xml.tmpl > server.xml
+        log_success "server.xml 生成完成"
+    else
+        log_error "未找到 server.xml.tmpl 模板文件"
+    fi
+}
+
 # 仅初始化环境
 init_only() {
     log_info "开始初始化项目环境..."
@@ -155,6 +263,8 @@ init_only() {
 
     # 执行初始化步骤
     create_directories
+    create_env_file
+    generate_config_files
     set_permissions
     check_ports
 
@@ -213,6 +323,8 @@ main() {
 
     # 执行初始化步骤
     create_directories
+    create_env_file
+    generate_config_files
     set_permissions
     check_ports
 

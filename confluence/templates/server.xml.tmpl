@@ -3,22 +3,22 @@
 		<!--
 		==============================================================================================================
 		DEFAULT - Direct connector with no proxy, for unproxied HTTP access to Confluence.
-		
+
 		If using a http/https proxy, comment out this connector.
 		==============================================================================================================
 		-->
-		<Connector port="8090" connectionTimeout="20000" redirectPort="8443" maxThreads="48" maxPostSize="16777216" minSpareThreads="10" enableLookups="false" acceptCount="10" URIEncoding="UTF-8" protocol="org.apache.coyote.http11.Http11NioProtocol" proxyName="wiki.devops.io" proxyPort="443" scheme="https" />
+		<Connector port="8090" connectionTimeout="20000" redirectPort="8443" maxThreads="48" maxPostSize="16777216" minSpareThreads="10" enableLookups="false" acceptCount="10" URIEncoding="UTF-8" protocol="org.apache.coyote.http11.Http11NioProtocol" proxyName="${CONFLUENCE_DOMAIN}" proxyPort="443" scheme="https" />
 		<!--
 		==============================================================================================================
 		HTTP - Proxying Confluence via Apache or Nginx over HTTP
-		
+
 		If you're proxying traffic to Confluence over HTTP, uncomment the connector below and comment out the others.
 		Make sure you provide the right information for proxyName and proxyPort.
-		
+
 		For more information see:
 		Apache - https://confluence.atlassian.com/x/4xQLM
 		nginx  - https://confluence.atlassian.com/x/TgSvEg
-		
+
 		==============================================================================================================
 		-->
 		<!--
@@ -31,7 +31,7 @@
 		<!--
 		==============================================================================================================
 		HTTPS - Direct connector with no proxy, for unproxied HTTPS access to Confluence.
-		
+
 		For more info see https://confluence.atlassian.com/x/s3UC
 		==============================================================================================================
 		-->
@@ -47,10 +47,10 @@
 		<!--
 		==============================================================================================================
 		HTTPS - Proxying Confluence via Apache or Nginx over HTTPS
-		
+
 		If you're proxying traffic to Confluence over HTTPS, uncomment the connector below and comment out the others.
 		Make sure you provide the right information for proxyName and proxyPort.
-		
+
 		For more information see:
 		Apache - https://confluence.atlassian.com/x/PTT3MQ
 		nginx  - https://confluence.atlassian.com/x/cNIvMw

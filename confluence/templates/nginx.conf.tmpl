@@ -1,16 +1,16 @@
 upstream wiki {
-    server 172.16.1.100:8090;
+    server confluence:8090;
 }
 
 # slleisure.com
 server {
     listen 443;
     listen 80;
-    server_name wiki.devops.io;
+    server_name ${CONFLUENCE_DOMAIN};
 
     #listen 443 default ssl;
-    ssl_certificate ssl/devops.io.crt;
-    ssl_certificate_key ssl/devops.io.key;
+    ssl_certificate ssl/${SSL_CERTIFICATE};
+    ssl_certificate_key ssl/${SSL_CERTIFICATE_KEY};
 
     ssl_session_timeout 5m;
 

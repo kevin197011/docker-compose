@@ -2,15 +2,13 @@ name: Ruby Test
 on:
   push:
     branches: [main]
-
 env:
   RUBY_VERSION: '3.2.0'
-
 jobs:
   run:
     runs-on: ubuntu-latest
     container:
-      image: ruby:3.2    # 直接使用官方 Ruby 镜像
+      image: ruby:3.2 # 直接使用官方 Ruby 镜像
     steps:
       - name: Install Node
         run: |
@@ -24,10 +22,10 @@ jobs:
           bundle install
       - name: Execute t.rb
         run: ruby t.rb
-      # - name: Notify Lark
-      #   run: |
-      #     curl -X POST "$LARK_WEBHOOK" \
-      #       -H "Content-Type: application/json" \
-      #       -d '{"msg_type":"text","content":{"text":"CI 执行完成"}}'
-      #   env:
-      #     LARK_WEBHOOK: ${{ secrets.LARK_WEBHOOK }}
+    # - name: Notify Lark
+    #   run: |
+    #     curl -X POST "$LARK_WEBHOOK" \
+    #       -H "Content-Type: application/json" \
+    #       -d '{"msg_type":"text","content":{"text":"CI 执行完成"}}'
+    #   env:
+    #     LARK_WEBHOOK: ${{ secrets.LARK_WEBHOOK }}

@@ -4,9 +4,9 @@ services:
     container_name: confluence
     environment:
       - TZ=${TZ}
-      # - JVM_MINIMUM_MEMORY=4g
-      # - JVM_MAXIMUM_MEMORY=4g
-      # - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g'
+      - JVM_MINIMUM_MEMORY=4g
+      - JVM_MAXIMUM_MEMORY=4g
+      - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g'
     depends_on:
       - mysql
     ports:

@@ -1,0 +1,18 @@
+
+
+task default: %w[push]
+
+task :push do
+  require 'time'
+  system 'rubocop -A'
+  system 'git add .'
+  system "git commit -m 'Update #{Time.now}.'"
+  system 'git pull'
+  system 'git push origin main'
+end
+
+task :docker do
+  system 'export COMPOSE_BAKE=true'
+  system 'docker compose up --build -d'
+  system 'docker compose logs -f'
+end

@@ -19,6 +19,10 @@ server {
     ssl_prefer_server_ciphers on;
 
     location / {
+        proxy_pass http://wiki;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_buffer_size 128k;
         proxy_buffers 32 128k;
         proxy_busy_buffers_size 128k;
@@ -26,19 +30,23 @@ server {
         proxy_send_timeout 300s;
         proxy_read_timeout 300s;
         client_max_body_size 100m;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Server $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_pass http://wiki;
+        # 允许 eval 和 inline JS（仅安装时开启）
+        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http: https:;" always;
+        # 允许 iframe（虽然 atlassian.com 会拒绝自己被嵌套，但这防止你自己页面被限制）
+        add_header X-Frame-Options "SAMEORIGIN";
     }
 
     location /synchrony {
+        proxy_pass http://wiki/synchrony;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Server $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_pass http://wiki/synchrony;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
+        # 允许 eval 和 inline JS（仅安装时开启）
+        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http: https:;" always;
+        # 允许 iframe（虽然 atlassian.com 会拒绝自己被嵌套，但这防止你自己页面被限制）
+        add_header X-Frame-Options "SAMEORIGIN";
     }
 }

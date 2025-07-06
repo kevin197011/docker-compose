@@ -8,7 +8,7 @@ services:
       - JVM_MAXIMUM_MEMORY=4g
       - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g'
     depends_on:
-      - mysql
+      - pgsql
     ports:
       - "8090:8090"
     volumes:
@@ -17,18 +17,16 @@ services:
     restart: always
     networks:
       - confluence_net
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  pgsql:
+    image: postgres:15
+    container_name: pgsql
     environment:
       - TZ=${TZ}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_bin", "--transaction-isolation=READ-COMMITTED", "--innodb_log_file_size=256M", "--max_allowed_packet=256M", "--log_bin_trust_function_creators=1"]
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ./data/pgsql:/var/lib/postgresql/data
     restart: always
     networks:
       - confluence_net

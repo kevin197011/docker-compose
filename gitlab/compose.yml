@@ -1,25 +1,26 @@
 services:
   redis:
-    restart: always
     image: redis:latest
-    command:
-      - --loglevel warning
+    restart: always
+    command: [--loglevel, warning]
     volumes:
       - ./data/redis:/data:Z
+    networks: [gitlab_net]
   postgresql:
-    restart: always
     image: postgres:latest
-    volumes:
-      - ./data/postgresql:/var/lib/postgresql:Z
-    environment:
-      - DB_USER=gitlab
-      - DB_PASS=password
-      - DB_NAME=gitlabhq_production
-      - DB_EXTENSION=pg_trgm,btree_gist
-  gitlab:
-    image: "gitlab/gitlab-ce:latest"
     restart: always
-    hostname: "gitlab"
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data:Z
+    environment:
+      - POSTGRES_USER=gitlab
+      - POSTGRES_PASSWORD=gitlabpw
+      - POSTGRES_DB=gitlab
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+    networks: [gitlab_net]
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: gitlab
     ports:
       - "8000:80"
       - "8443:443"
@@ -29,33 +30,67 @@ services:
       - ./data/gitlab/log:/var/log/gitlab
       - ./data/gitlab/data:/var/opt/gitlab
     environment:
-      TZ: "Asia/Shanghai"
-      GITLAB_OMNIBUS_CONFIG: |-
-        external_url 'https://gitlab.devops.com'
+      TZ: ${TZ}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url '${GITLAB_URL}'
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
         nginx['listen_port'] = 80
         nginx['listen_https'] = false
-        DEBUG = false
-        DB_ADAPTER = postgresql
-        DB_HOST = postgresql
-        DB_PORT = 5432
-        DB_USER = gitlab
-        DB_PASS = password
-        DB_NAME = gitlabhq_production
-        REDIS_HOST = redis
-        REDIS_PORT = 6379
-    depends_on:
-      - redis
-      - postgresql
-  nginx:
-    image: nginx:latest
-    container_name: nginx
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'utf8'
+        gitlab_rails['db_host'] = 'postgresql'
+        gitlab_rails['db_port'] = 5432
+        gitlab_rails['db_username'] = 'gitlab'
+        gitlab_rails['db_password'] = 'gitlabpw'
+        gitlab_rails['db_database'] = 'gitlab'
+        gitlab_rails['redis_host'] = 'redis'
+        gitlab_rails['redis_port'] = 6379
+        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
+    depends_on: [redis, postgresql]
+    networks: [gitlab_net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/-/readiness"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/gitlab.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
-      - gitlab
+      gitlab:
+        condition: service_healthy
+    volumes:
+      - ./data/gitlab-runner/config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+    networks: [gitlab_net]
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      # 检查是否已经注册
+      if [ -f /etc/gitlab-runner/config.toml ] && grep -q "url" /etc/gitlab-runner/config.toml; then
+        echo "Runner 已注册，直接启动..."
+        exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
+      fi
+
+      echo "Runner 未注册，等待手动注册..."
+      echo "请使用以下步骤手动注册 Runner："
+      echo "1. 等待 GitLab 完全启动"
+      echo "2. 访问 ${GITLAB_URL}/admin/runners 获取注册令牌"
+      echo "3. 运行: docker exec -it gitlab-runner gitlab-runner register"
+      echo "4. 重启容器: docker-compose restart gitlab-runner"
+
+      # 保持容器运行，等待手动注册
+      while true; do
+        if [ -f /etc/gitlab-runner/config.toml ] && grep -q "url" /etc/gitlab-runner/config.toml; then
+          echo "检测到 Runner 配置，启动 Runner..."
+          exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
+        fi
+        echo "等待 Runner 注册..."
+        sleep 30
+      done
+networks:
+  gitlab_net:
+    driver: bridge

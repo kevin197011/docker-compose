@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+task default: %w[run]
+
+task :run do
+  system 'docker compose down'
+  system 'rm -rf data'
+  system 'docker compose up -d'
+  system 'docker compose logs -f'
+end

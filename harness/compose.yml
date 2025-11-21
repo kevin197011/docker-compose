@@ -1,11 +1,12 @@
 services:
   harness:
-    image: harness/harness
+    image: harness/harness:latest
+    pull_policy: always
     container_name: harness
     restart: always
     ports:
       - "3000:3000" # HTTP 端口
       - "3022:3022" # SSH/API 端口
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # 挂载 Docker 守护进程套接字
-      - ./data/harness:/data # 挂载持久化数据目录
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/harness:/data

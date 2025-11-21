@@ -1,0 +1,18 @@
+services:
+  srs:
+    image: ossrs/srs:6
+    container_name: srs
+    restart: always
+    ports:
+      - "1935:1935" # RTMP port
+      - "1985:1985" # HTTP API port
+      - "8080:8080" # HTTP port
+    volumes:
+      - ./data/conf:/usr/local/srs/conf
+      # - ./data/objs:/usr/local/srs/objs
+    command: ./objs/srs -c /usr/local/srs/conf/live.conf
+    networks:
+      - srs_net
+networks:
+  srs_net:
+    name: srs_net

@@ -2,7 +2,7 @@
 
 ## 📖 项目简介
 
-开源的堡垒机，提供安全的远程访问解决方案
+开源的堡垒机，提供安全的远程访问解决方案。本配置使用 `jumpserver/jms_all` 一体化镜像，包含所有 JumpServer 组件（Core、Koko、Lion、Web、Magnus）。
 
 ## ✨ 功能特性
 
@@ -48,9 +48,11 @@ docker compose ps
 
 ## 🌐 服务端口
 
-- **80**: JumpServer 服务端口
-- **443**: JumpServer 服务端口
-- **2222**: JumpServer 服务端口
+- **80**: JumpServer Web 服务端口（HTTP）
+- **2222**: JumpServer SSH 服务端口
+- **30000-30100**: JumpServer RDP/VNC 端口范围
+- **3306**: MySQL 数据库端口
+- **6379**: Redis 缓存端口
 
 
 ## 🔧 配置说明
@@ -110,9 +112,11 @@ docker compose down -v
 
 服务启动后，可以通过以下地址访问：
 
-- JumpServer: http://localhost:80
-- JumpServer: http://localhost:443
-- JumpServer: http://localhost:2222
+- **JumpServer Web**: http://localhost
+- **JumpServer SSH**: localhost:2222
+- **默认账号**: admin / ChangeMe（首次登录后需修改密码）
+
+**注意**: 使用 `jms_all` 一体化镜像，所有组件（Core、Koko、Lion、Web、Magnus）都运行在同一个容器中。
 
 
 ## 🛠️ 故障排除

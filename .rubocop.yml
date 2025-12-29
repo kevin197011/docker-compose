@@ -1,5 +1,6 @@
 AllCops:
   NewCops: enable
+
 Gemspec/AddRuntimeDependency:
   Enabled: true
 Gemspec/AttributeAssignment:

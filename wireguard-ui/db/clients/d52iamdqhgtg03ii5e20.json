@@ -1,0 +1,22 @@
+{
+	"id": "d52iamdqhgtg03ii5e20",
+	"private_key": "EL+g1dofgdllr0nMYVwJnWj21fiTBtyekDguGpDZvlY=",
+	"public_key": "pNRgvf9mssBPICUpTJ/JQqKbqBptAOXKQ8cLQG0pbXs=",
+	"preshared_key": "s5rOOtGYDVf7xLtG8bQvWHbYFNbTf1BQl6SrJHUfP3E=",
+	"name": "devops",
+	"telegram_userid": "",
+	"email": "devops@devops.io",
+	"allocated_ips": [
+		"10.252.1.1/32"
+	],
+	"allowed_ips": [
+		"0.0.0.0/0"
+	],
+	"extra_allowed_ips": [],
+	"endpoint": "",
+	"additional_notes": "",
+	"use_server_dns": true,
+	"enabled": true,
+	"created_at": "2025-12-19T10:13:45.01434857Z",
+	"updated_at": "2025-12-19T10:13:45.01434857Z"
+}

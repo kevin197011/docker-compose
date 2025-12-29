@@ -1,0 +1,7 @@
+default: %w[run]
+
+task :run do
+  system 'docker compose down'
+  system 'docker compose up -d'
+  system 'docker compose logs -f'
+end

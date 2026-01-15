@@ -1,0 +1,25 @@
+networks:
+  forgejo:
+    external: false
+
+services:
+  server:
+    image: codeberg.org/forgejo/forgejo:13
+    container_name: forgejo
+    environment:
+      - FORGEJO__database__DB_TYPE=sqlite3 # 本地测试建议直接用 SQLite，简单快速
+      - FORGEJO__server__DOMAIN=localhost
+      - FORGEJO__server__SSH_DOMAIN=localhost
+      - FORGEJO__server__HTTP_PORT=3000
+      - FORGEJO__server__ROOT_URL=http://localhost:3000
+      - FORGEJO__server__SSH_PORT=222
+    restart: always
+    networks:
+      - forgejo
+    volumes:
+      # 使用当前目录下的 data 文件夹，方便在 Mac 访达中查看
+      - ./forgejo_data:/data
+      # Mac 下不需要映射 /etc/localtime，Docker Desktop 会自动处理时区
+    ports:
+      - '3000:3000' # Web 访问端口
+      - '2222:22'    # SSH 克隆端口

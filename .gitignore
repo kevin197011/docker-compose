@@ -19,3 +19,5 @@ data
 t.rb
 logs
 .cursor
+.DS_Store
+# forgejo_data

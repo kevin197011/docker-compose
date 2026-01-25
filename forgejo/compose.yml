@@ -3,23 +3,95 @@ networks:
     external: false
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forgejo-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${FORGEJO_DB_NAME:-forgejo}
+      - POSTGRES_USER=${FORGEJO_DB_USER:-forgejo}
+      - POSTGRES_PASSWORD=${FORGEJO_DB_PASSWORD:?set FORGEJO_DB_PASSWORD in .env}
+    command:
+      - postgres
+      - -c
+      - max_connections=200
+    volumes:
+      - forgejo-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forgejo -d forgejo"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - forgejo
+
+  redis:
+    image: redis:7-alpine
+    container_name: forgejo-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+    volumes:
+      - forgejo-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - forgejo
+
   server:
     image: codeberg.org/forgejo/forgejo:13
     container_name: forgejo
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
-      - FORGEJO__database__DB_TYPE=sqlite3 # 本地测试建议直接用 SQLite，简单快速
+      # --- Database: PostgreSQL ---
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=postgres:5432
+      - FORGEJO__database__NAME=${FORGEJO_DB_NAME:-forgejo}
+      - FORGEJO__database__USER=${FORGEJO_DB_USER:-forgejo}
+      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD:?set FORGEJO_DB_PASSWORD in .env}
+      - FORGEJO__database__SSL_MODE=disable
+      # 连接池（与 postgres 的 max_connections 配套）
+      - FORGEJO__database__MAX_OPEN_CONNS=100
+      - FORGEJO__database__MAX_IDLE_CONNS=10
+
+      # --- Cache: Redis ---
+      - FORGEJO__cache__ADAPTER=redis
+      - FORGEJO__cache__HOST=redis://redis:6379/0?pool_size=100&idle_timeout=180s
+
+      # --- Session: Redis（多实例/高并发更稳） ---
+      - FORGEJO__session__PROVIDER=redis
+      - FORGEJO__session__PROVIDER_CONFIG=redis://redis:6379/1?pool_size=100&idle_timeout=180s
+
+      # --- Queue: Redis（后台任务更抗压） ---
+      - FORGEJO__queue__TYPE=redis
+      - FORGEJO__queue__CONN_STR=redis://redis:6379/2
+
+      # --- Server ---
       - FORGEJO__server__DOMAIN=localhost
       - FORGEJO__server__SSH_DOMAIN=localhost
       - FORGEJO__server__HTTP_PORT=3000
       - FORGEJO__server__ROOT_URL=http://localhost:3000
-      - FORGEJO__server__SSH_PORT=222
-    restart: always
+      # 对外展示的 SSH 端口（与 ports 映射一致）
+      - FORGEJO__server__SSH_PORT=2222
     networks:
       - forgejo
     volumes:
       # 使用当前目录下的 data 文件夹，方便在 Mac 访达中查看
       - ./forgejo_data:/data
-      # Mac 下不需要映射 /etc/localtime，Docker Desktop 会自动处理时区
     ports:
-      - '3000:3000' # Web 访问端口
-      - '2222:22'    # SSH 克隆端口
+      - "3000:3000" # Web 访问端口
+      - "2222:22"   # SSH 克隆端口
+
+volumes:
+  forgejo-postgres:
+  forgejo-redis:

@@ -1,6 +1,6 @@
 networks:
-  forgejo:
-    external: false
+  forgejo_net:
+    name: forgejo_net
 
 services:
   postgres:
@@ -16,14 +16,14 @@ services:
       - -c
       - max_connections=200
     volumes:
-      - forgejo-postgres:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U forgejo -d forgejo"]
       interval: 10s
       timeout: 5s
       retries: 10
     networks:
-      - forgejo
+      - forgejo_net
 
   redis:
     image: redis:7-alpine
@@ -34,64 +34,80 @@ services:
       - --appendonly
       - "yes"
     volumes:
-      - forgejo-redis:/data
+      - ./data/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 10
     networks:
-      - forgejo
+      - forgejo_net
 
-  server:
+  forgejo:
     image: codeberg.org/forgejo/forgejo:13
     container_name: forgejo
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - DB_TYPE=postgres
+      - DB_HOST=postgres:5432
+      - DB_NAME=${FORGEJO_DB_NAME:-forgejo}
+      - DB_USER=${FORGEJO_DB_USER:-forgejo}
+      - DB_PASSWD=${FORGEJO_DB_PASSWORD:?set FORGEJO_DB_PASSWORD in .env}
+      - FORGEJO__database__SSL_MODE=disable
+      - FORGEJO__database__MAX_OPEN_CONNS=100
+      - FORGEJO__database__MAX_IDLE_CONNS=10
+      - FORGEJO__cache__ADAPTER=redis
+      - FORGEJO__cache__HOST=redis://redis:6379/0?pool_size=100&idle_timeout=180s
+      - FORGEJO__session__PROVIDER=redis
+      - FORGEJO__session__PROVIDER_CONFIG=redis://redis:6379/1?pool_size=100&idle_timeout=180s
+      - FORGEJO__queue__TYPE=redis
+      - FORGEJO__queue__CONN_STR=redis://redis:6379/2
+      - FORGEJO__actions__ENABLED=true
+      - FORGEJO__security__DISABLE_QUERY_AUTH_TOKEN=false
+      - FORGEJO__server__DOMAIN=localhost
+      - FORGEJO__server__SSH_DOMAIN=localhost
+      - FORGEJO__server__HTTP_PORT=3000
+      - FORGEJO__server__ROOT_URL=http://localhost:3000
+      - FORGEJO__server__SSH_PORT=2222
+      - FORGEJO__actions__DEFAULT_ACTIONS_REGISTRATION_TOKEN=${FORGEJO_RUNNER_REGISTRATION_TOKEN:-}
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    volumes:
+      - ./data/forgejo:/data
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: unless-stopped
-    environment:
-      # --- Database: PostgreSQL ---
-      - FORGEJO__database__DB_TYPE=postgres
-      - FORGEJO__database__HOST=postgres:5432
-      - FORGEJO__database__NAME=${FORGEJO_DB_NAME:-forgejo}
-      - FORGEJO__database__USER=${FORGEJO_DB_USER:-forgejo}
-      - FORGEJO__database__PASSWD=${FORGEJO_DB_PASSWORD:?set FORGEJO_DB_PASSWORD in .env}
-      - FORGEJO__database__SSL_MODE=disable
-      # 连接池（与 postgres 的 max_connections 配套）
-      - FORGEJO__database__MAX_OPEN_CONNS=100
-      - FORGEJO__database__MAX_IDLE_CONNS=10
-
-      # --- Cache: Redis ---
-      - FORGEJO__cache__ADAPTER=redis
-      - FORGEJO__cache__HOST=redis://redis:6379/0?pool_size=100&idle_timeout=180s
-
-      # --- Session: Redis（多实例/高并发更稳） ---
-      - FORGEJO__session__PROVIDER=redis
-      - FORGEJO__session__PROVIDER_CONFIG=redis://redis:6379/1?pool_size=100&idle_timeout=180s
-
-      # --- Queue: Redis（后台任务更抗压） ---
-      - FORGEJO__queue__TYPE=redis
-      - FORGEJO__queue__CONN_STR=redis://redis:6379/2
-
-      # --- Server ---
-      - FORGEJO__server__DOMAIN=localhost
-      - FORGEJO__server__SSH_DOMAIN=localhost
-      - FORGEJO__server__HTTP_PORT=3000
-      - FORGEJO__server__ROOT_URL=http://localhost:3000
-      # 对外展示的 SSH 端口（与 ports 映射一致）
-      - FORGEJO__server__SSH_PORT=2222
     networks:
-      - forgejo
-    volumes:
-      # 使用当前目录下的 data 文件夹，方便在 Mac 访达中查看
-      - ./forgejo_data:/data
-    ports:
-      - "3000:3000" # Web 访问端口
-      - "2222:22"   # SSH 克隆端口
+      - forgejo_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
-volumes:
-  forgejo-postgres:
-  forgejo-redis:
+  forgejo-runner:
+    image: code.forgejo.org/forgejo/runner:12
+    container_name: forgejo-runner
+    restart: unless-stopped
+    entrypoint: ["forgejo-runner", "daemon"]
+    depends_on:
+      forgejo:
+        condition: service_healthy
+    environment:
+      - CONFIG_FILE=/data/config.yml
+    volumes:
+      - ./config/config.yml:/data/config.yml:ro
+      - ./data/runner:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - forgejo_net
+    # 在 macOS 上需要以 root 用户运行以访问 Docker socket
+    # 或者使用 Docker-in-Docker 方案（更安全但需要额外容器）
+    user: "0:0"
+    privileged: true

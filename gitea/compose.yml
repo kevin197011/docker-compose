@@ -16,7 +16,12 @@ services:
       # SSH port configuration
       - GITEA__server__SSH_PORT=2222
       # Pre-set global runner registration token
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-}
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-bc99b216f82c995f41ca6c7a9fce81f8de5b2ba9938b1d858e48f6be503cde73}
+      # Redis cache configuration
+      - GITEA__cache__ADAPTER=redis
+      - GITEA__cache__HOST=redis://redis:6379/0
+      - GITEA__session__PROVIDER=redis
+      - GITEA__session__PROVIDER_CONFIG=redis://redis:6379/1
     ports:
       - "3000:3000"
       - "2222:22"
@@ -24,7 +29,10 @@ services:
       - ./data/gitea:/data
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_healthy
     networks:
       - gitea_net
     healthcheck:
@@ -41,13 +49,13 @@ services:
       gitea:
         condition: service_healthy
     environment:
-      - CONFIG_FILE=/config.yaml
+      - CONFIG_FILE=/config.yml
       - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL:-http://gitea:3000}
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-${ACT_RUNNER_TOKEN:-}}
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-bc99b216f82c995f41ca6c7a9fce81f8de5b2ba9938b1d858e48f6be503cde73}}
       - GITEA_RUNNER_NAME=${ACT_RUNNER_NAME:-gitea-runner}
       - GITEA_RUNNER_LABELS=${ACT_RUNNER_LABELS:-ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye,ubuntu-20.04:docker://node:20-bullseye}
     volumes:
-      - ./config/act-runner:/config.yaml:ro
+      - ./config/config.yml:/config.yml:ro
       - ./data/act-runner:/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -58,6 +66,21 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+  redis:
+    image: redis:7-alpine
+    container_name: gitea-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
+    restart: always
+    networks:
+      - gitea_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -66,7 +89,7 @@ services:
       POSTGRES_USER: gitea
       POSTGRES_PASSWORD: gitea@passwd
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql
     restart: always
     networks:
       - gitea_net

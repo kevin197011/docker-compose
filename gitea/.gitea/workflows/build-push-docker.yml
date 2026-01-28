@@ -1,0 +1,69 @@
+# Build and push to Gitea Packages (gitea:3000/owner/repo). HTTP registry via skopeo.
+# Secrets: GITEA_USERNAME, GITEA_TOKEN (or set in step env for testing).
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      tag: { description: 'Image tag', required: false, default: 'latest' }
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker & Skopeo
+        run: |
+          apt-get update -qq && apt-get install -y -qq ca-certificates curl gnupg
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release 2>/dev/null && echo "${VERSION_CODENAME:-bullseye}" || echo bullseye) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+          apt-get update -qq && apt-get install -y -qq docker-ce-cli skopeo
+          mkdir -p ~/.config/containers
+          printf '[[registry]]\nlocation = "gitea:3000"\nprefix = "gitea:3000"\ninsecure = true\n' > ~/.config/containers/registries.conf
+          docker --version && skopeo --version
+
+      - name: Build and push
+        env:
+          REGISTRY: gitea:3000
+          IMAGE: gitea:3000/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          USERNAME: ${{ secrets.GITEA_USERNAME }}
+          PASSWORD: ${{ secrets.GITEA_TOKEN }}
+        run: |
+          set -e
+          [ -S /var/run/docker.sock ] || (echo "No docker socket" && exit 1)
+          docker info >/dev/null 2>&1 || (echo "Docker daemon unreachable" && exit 1)
+          USERNAME="${USERNAME:-devops}"
+          PASSWORD="${PASSWORD:-12345678}"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            TAG="pr-${{ github.event.pull_request.number }}"
+            docker build -f Dockerfile -t "${IMAGE}:${TAG}" .
+            echo "Built ${IMAGE}:${TAG}"
+            exit 0
+          fi
+
+          TAG="${{ github.ref_name }}"
+          SHA="${{ github.sha }}"
+          SHA="${SHA:0:50}"
+          TAGS="${IMAGE}:${TAG} ${IMAGE}:${SHA}"
+          [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ] && TAGS="${TAGS} ${IMAGE}:latest"
+          [ -n "${{ github.event.inputs.tag }}" ] && TAGS="${TAGS} ${IMAGE}:${{ github.event.inputs.tag }}"
+
+          TAG_ARGS=""
+          for t in $TAGS; do TAG_ARGS="${TAG_ARGS} -t ${t}"; done
+          docker build -f Dockerfile $TAG_ARGS .
+          docker save -o /tmp/img.tar "${IMAGE}:${TAG}"
+
+          for t in $TAGS; do
+            skopeo copy --dest-tls-verify=false --dest-creds="${USERNAME}:${PASSWORD}" \
+              docker-archive:/tmp/img.tar "docker://${t}"
+          done
+          echo "Pushed: $TAGS"

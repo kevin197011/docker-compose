@@ -34,10 +34,12 @@ cache:
 container:
   # Which network to use for the job containers
   network: "gitea_net"
-  # Whether to use privileged mode
-  privileged: false
+  # Whether to use privileged mode (needed for Docker-in-Docker tasks)
+  privileged: true
   # And other options to be used when the container is created
-  options:
+  # Add host gateway for accessing Gitea from job containers
+  # Note: act-runner already mounts /var/run/docker.sock into job containers; do not add it here (duplicate mount error).
+  options: --add-host=gitea:host-gateway
   # The parent directory of a job's working directory
   workdir_parent: ""
 

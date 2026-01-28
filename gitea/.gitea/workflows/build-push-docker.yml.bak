@@ -1,0 +1,143 @@
+# Build and push Docker image to Gitea Packages. Uses skopeo for push (--dest-tls-verify=false +
+# registries.conf insecure) so HTTP registry works without host Docker insecure-registries.
+# Images land at gitea:3000/owner/repo (job container) and show in UI at http://localhost:3000/owner/repo/packages.
+# Requires: Dockerfile, vars.GITEA_HOST (default gitea:3000; job runs in container on gitea_net).
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag'
+        required: false
+        default: 'latest'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set registry and image env
+        id: env
+        run: |
+          REGISTRY="${{ vars.GITEA_HOST }}"
+          [ -z "${REGISTRY}" ] && REGISTRY="gitea:3000"
+          case "${REGISTRY}" in localhost:*|127.0.0.1:*|localhost|127.0.0.1) REGISTRY="gitea:3000" ;; esac
+          OWNER="${{ github.repository_owner }}"
+          REPO="${{ github.event.repository.name }}"
+          [ -z "${REPO}" ] && REPO="${OWNER}"
+          IMAGE_BASE="${{ vars.IMAGE_NAME }}"
+          [ -z "${IMAGE_BASE}" ] && IMAGE_BASE="${REGISTRY}/${OWNER}/${REPO}"
+          echo "REGISTRY=${REGISTRY}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${IMAGE_BASE}" >> $GITHUB_ENV
+          echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_BASE}" >> $GITHUB_OUTPUT
+
+      - name: Check Docker availability
+        id: check_docker
+        run: |
+          set -e
+          echo "=== Docker diagnostic ==="
+          apt-get update -qq && apt-get install -y -qq ca-certificates curl gnupg >/dev/null 2>&1
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release 2>/dev/null && echo "${VERSION_CODENAME:-bullseye}" || echo "bullseye") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+          apt-get update -qq && apt-get install -y -qq docker-ce-cli >/dev/null 2>&1
+          apt-get install -y -qq skopeo >/dev/null 2>&1 || true
+          docker --version && skopeo --version || true
+          if [ ! -S /var/run/docker.sock ]; then
+            echo "Docker socket not found. Mount docker.sock into job containers (act-runner)."
+            echo "docker_available=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          if ! docker info >/dev/null 2>&1; then
+            echo "Cannot connect to Docker daemon. Check socket permissions and act-runner config."
+            docker info 2>&1 || true
+            echo "docker_available=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "docker_available=true" >> $GITHUB_OUTPUT
+          echo "Docker OK"
+
+      - name: Generate image tags
+        if: ${{ steps.check_docker.outputs.docker_available == 'true' }}
+        id: tags
+        run: |
+          IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            TAG="pr-${{ github.event.pull_request.number }}"
+          elif [ -n "${{ github.ref_name }}" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="latest"
+          fi
+          SHA_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          SHA_TAG="${SHA_TAG:0:50}"
+          TAGS="${IMAGE_NAME}:${TAG}"
+          TAGS="${TAGS} ${IMAGE_NAME}:${SHA_TAG}"
+          if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+            TAGS="${TAGS} ${IMAGE_NAME}:latest"
+          fi
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAGS="${TAGS} ${IMAGE_NAME}:${{ github.event.inputs.tag }}"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Tags: ${TAGS}"
+
+      - name: Build and push Docker image
+        if: ${{ steps.check_docker.outputs.docker_available == 'true' && github.event_name != 'pull_request' }}
+        id: build
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+        run: |
+          USERNAME="devops"
+          CREDS="${USERNAME}:12345678"
+          REGISTRY="${{ env.REGISTRY }}"
+          HOST_PORT="${REGISTRY#*://}"
+          mkdir -p ~/.config/containers
+          printf '[[registry]]\nlocation = "%s"\nprefix = "%s"\ninsecure = true\n' "${HOST_PORT}" "${HOST_PORT}" > ~/.config/containers/registries.conf
+          TAGS="${{ steps.tags.outputs.tags }}"
+          TAG_ARGS=""
+          for t in ${TAGS}; do TAG_ARGS="${TAG_ARGS} -t ${t}"; done
+          docker build -f ./Dockerfile ${TAG_ARGS} .
+          MAIN_TAG=$(echo "${TAGS}" | awk '{print $1}')
+          docker save -o /tmp/img.tar "${MAIN_TAG}"
+          for t in ${TAGS}; do
+            skopeo copy --dest-tls-verify=false \
+              --dest-creds="${CREDS}" \
+              "docker-archive:/tmp/img.tar" "docker://${t}"
+          done
+          DIGEST=$(skopeo inspect --tls-verify=false --creds="${CREDS}" "docker://${MAIN_TAG}" --format '{{.Digest}}' 2>/dev/null || echo "")
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+          echo "Pushed: ${TAGS}"
+
+      - name: Build Docker image (PR, no push)
+        if: ${{ steps.check_docker.outputs.docker_available == 'true' && github.event_name == 'pull_request' }}
+        run: |
+          TAG="${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}"
+          docker build -f ./Dockerfile -t "${TAG}" .
+          echo "Built: ${TAG}"
+
+      - name: Image digest
+        if: ${{ steps.check_docker.outputs.docker_available == 'true' && github.event_name != 'pull_request' }}
+        run: |
+          echo "Image digest: ${{ steps.build.outputs.digest }}"

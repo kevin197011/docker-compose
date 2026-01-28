@@ -13,6 +13,8 @@ services:
       # Enable Gitea Actions
       - GITEA__actions__ENABLED=true
       - GITEA__security__DISABLE_QUERY_AUTH_TOKEN=false
+      # Registry token realm uses ROOT_URL. Jobs run in containers on gitea_net → use gitea:3000.
+      - GITEA__server__ROOT_URL=${GITEA_ROOT_URL:-http://gitea:3000/}
       # SSH port configuration
       - GITEA__server__SSH_PORT=2222
       # Pre-set global runner registration token
@@ -41,9 +43,9 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-  act-runner:
+  gitea-runner:
     image: gitea/act_runner:nightly
-    container_name: gitea-act-runner
+    container_name: gitea-runner
     restart: unless-stopped
     depends_on:
       gitea:
@@ -51,7 +53,7 @@ services:
     environment:
       - CONFIG_FILE=/config.yml
       - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL:-http://gitea:3000}
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN:-bc99b216f82c995f41ca6c7a9fce81f8de5b2ba9938b1d858e48f6be503cde73}}
+      - GITEA_RUNNER_REGISTRATION_TOKEN=bc99b216f82c995f41ca6c7a9fce81f8de5b2ba9938b1d858e48f6be503cde73
       - GITEA_RUNNER_NAME=${ACT_RUNNER_NAME:-gitea-runner}
       - GITEA_RUNNER_LABELS=${ACT_RUNNER_LABELS:-ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye,ubuntu-20.04:docker://node:20-bullseye}
     volumes:
@@ -60,8 +62,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - gitea_net
+    # Macos need to run as root to access Docker socket
+    user: "0:0"
+    privileged: true
     healthcheck:
-      test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "act_runner"]
+      test: ["CMD-SHELL", "ps aux | grep -v grep | grep -q act_runner"]
       interval: 30s
       timeout: 10s
       retries: 5

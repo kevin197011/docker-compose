@@ -1,82 +1,138 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-# 彩色日志
-log() { local c=$1; shift; echo -e "${c}$*\033[0m"; }
-info() { log "\033[0;34m[INFO]" "$@"; }
-success() { log "\033[0;32m[SUCCESS]" "$@"; }
-warn() { log "\033[1;33m[WARN]" "$@"; }
-error() { log "\033[0;31m[ERROR]" "$@"; }
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-# 检查依赖
-check_env() {
-  command -v docker &>/dev/null || { error "缺少 Docker"; exit 1; }
-  command -v docker compose &>/dev/null || { error "缺少 Docker Compose"; exit 1; }
-  success "依赖检查通过"
+log_info() { echo -e "${BLUE}[INFO]${NC} $*"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+
+check_requirements() {
+  command -v docker >/dev/null || { log_error "Docker is required"; exit 1; }
+  docker compose version >/dev/null || { log_error "Docker Compose v2 is required"; exit 1; }
+  command -v openssl >/dev/null || { log_error "openssl is required to generate passwords"; exit 1; }
+  log_success "Dependencies OK"
 }
 
-# 初始化目录和权限
-init_dirs() {
-  mkdir -p data logs config
-  chmod -R 755 data logs config 2>/dev/null || true
-  chmod +x bootstrap.sh 2>/dev/null || true
-  success "目录和权限已就绪"
+gen_password() {
+  openssl rand -hex 16
 }
 
-# 端口检查
+ensure_env() {
+  if [[ -f .env ]]; then
+    return
+  fi
+
+  [[ -f .env.example ]] || { log_error ".env.example not found"; exit 1; }
+
+  local root_pass pg_pass redis_pass
+  root_pass=$(gen_password)
+  pg_pass=$(gen_password)
+  redis_pass=$(gen_password)
+
+  sed \
+    -e "s/^GITLAB_ROOT_PASSWORD=.*/GITLAB_ROOT_PASSWORD=${root_pass}/" \
+    -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${pg_pass}/" \
+    -e "s/^GITLAB_REDIS_PASSWORD=.*/GITLAB_REDIS_PASSWORD=${redis_pass}/" \
+    .env.example > .env
+
+  mkdir -p data
+  cat > data/.credentials <<EOF
+# Generated $(date -Iseconds) — keep secret, do not commit
+GITLAB_ROOT_PASSWORD=${root_pass}
+POSTGRES_PASSWORD=${pg_pass}
+GITLAB_REDIS_PASSWORD=${redis_pass}
+EOF
+  chmod 600 data/.credentials .env
+
+  log_success "Generated .env with random passwords (also saved to data/.credentials)"
+  echo
+  echo "  GitLab root:  ${root_pass}"
+  echo "  PostgreSQL:   ${pg_pass}"
+  echo "  Redis:        ${redis_pass}"
+  echo
+  log_warn "Save these passwords — they are not shown again unless you read data/.credentials"
+}
+
+create_directories() {
+  mkdir -p \
+    data/postgresql \
+    data/redis-cache \
+    data/redis-persistent \
+    data/redis-sessions \
+    data/gitlab/config \
+    data/gitlab/log \
+    data/gitlab/data \
+    data/gitlab/backups \
+    data/gitlab-runner/config
+  chmod +x bootstrap.sh register-runner.sh ci-smoke-test.sh 2>/dev/null || true
+  log_success "Directories ready"
+}
+
 check_ports() {
-  for p in 80 443 22; do
-    (netstat -tuln 2>/dev/null || ss -tuln 2>/dev/null) | grep -q ":$p " && warn "端口 $p 已被占用"
+  # shellcheck disable=SC1091
+  source .env 2>/dev/null || true
+  for p in "${GITLAB_HTTP_PORT:-8000}" "${GITLAB_HTTPS_PORT:-8443}" "${GITLAB_SSH_PORT:-2222}"; do
+    if (ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null) | grep -q ":${p} "; then
+      log_warn "Port ${p} is already in use"
+    fi
   done
-  success "端口检查完成"
 }
 
-# 清理其他目录
-cleanup() {
-  local cur=$(basename "$PWD"); cd ..
-  warn "将删除除 '$cur' 外的所有内容，是否继续? (y/N): "
-  read -r yn; [[ $yn =~ ^[Yy]$ ]] && find . -maxdepth 1 ! -name '.' ! -name "$cur" -exec rm -rf {} + && success "清理完成" || info "已取消"
-  cd "$cur"
-}
-
-# 帮助
 show_help() {
-  echo "用法: $0 [--init|--cleanup|--help]"
-  echo "  --init     仅初始化环境"
-  echo "  --cleanup  清理其他目录"
-  echo "  --help     显示帮助"
+  cat <<EOF
+GitLab production bootstrap
+
+Usage:
+  $0           Full deploy (init + docker compose up)
+  $0 --init    Create .env and data directories only
+  $0 --help    Show this help
+EOF
 }
 
-# 初始化
 init_only() {
-  info "初始化环境..."
-  check_env
-  info "是否清理其他目录? (y/N): "; read -r yn; [[ $yn =~ ^[Yy]$ ]] && cleanup
-  init_dirs
+  check_requirements
+  ensure_env
+  create_directories
   check_ports
-  success "初始化完成"
-  echo -e "\n🚀 ./bootstrap.sh 部署 | docker compose up -d 启动 | logs/ 查看日志"
+  log_success "Init complete. Review .env, then run: docker compose up -d"
 }
 
-# 主流程
 main() {
-  case "$1" in
-    --init) init_only; exit;;
-    --cleanup) cleanup; exit;;
-    --help|-h) show_help; exit;;
+  case "${1:-}" in
+    --init) init_only; exit 0 ;;
+    --help|-h) show_help; exit 0 ;;
     "") ;;
-    *) error "未知参数: $1"; show_help; exit 1;;
+    *) log_error "Unknown option: $1"; show_help; exit 1 ;;
   esac
-  info "开始部署..."
-  check_env
-  info "是否清理其他目录? (y/N): "; read -r yn; [[ $yn =~ ^[Yy]$ ]] && cleanup
-  init_dirs
+
+  log_info "Deploying GitLab stack..."
+  check_requirements
+  ensure_env
+  create_directories
   check_ports
-  info "启动服务..."
+
+  docker compose pull
   docker compose up -d
-  sleep 8
-  success "GitLab 部署完成！"
-  echo -e "\n🌐 访问: http://localhost | https://localhost\n📊 状态: docker compose ps | 日志: docker compose logs -f\n👤 首次访问请设置 root 密码"
+
+  # shellcheck disable=SC1091
+  source .env
+
+  log_info "Registering global instance runner (if needed)..."
+  ./register-runner.sh || log_warn "Runner registration skipped or failed — retry with ./register-runner.sh"
+
+  log_success "GitLab stack started"
+  echo
+  echo "URL:      ${GITLAB_URL:-http://localhost:8000}"
+  echo "SSH git:  ssh://git@localhost:${GITLAB_SSH_PORT:-2222}/group/project.git"
+  echo "Root:     root / (see GITLAB_ROOT_PASSWORD in .env or data/.credentials)"
+  echo "Status:   docker compose ps"
+  echo "Logs:     docker compose logs -f gitlab"
 }
 
 main "$@"

@@ -1,96 +1,204 @@
+networks:
+  gitlab_net:
+    name: gitlab_net
+
+x-redis-common: &redis-common
+  image: redis:${REDIS_VERSION:-7-alpine}
+  restart: unless-stopped
+  networks: [gitlab_net]
+  healthcheck:
+    test: ["CMD", "redis-cli", "-a", "${GITLAB_REDIS_PASSWORD:?set GITLAB_REDIS_PASSWORD in .env}", "ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 10
+    start_period: 10s
+
 services:
-  redis:
-    image: redis:latest
-    restart: always
-    command: [--loglevel, warning]
-    volumes:
-      - ./data/redis:/data:Z
-    networks: [gitlab_net]
   postgresql:
-    image: postgres:latest
-    restart: always
-    volumes:
-      - ./data/postgresql:/var/lib/postgresql/data:Z
+    image: postgres:${POSTGRES_VERSION:-17-alpine}
+    container_name: gitlab-postgresql
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=gitlab
-      - POSTGRES_PASSWORD=gitlabpw
-      - POSTGRES_DB=gitlab
-      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+      POSTGRES_USER: ${POSTGRES_USER:-gitlab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-gitlabhq_production}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    command:
+      - postgres
+      - -c
+      - max_connections=200
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=3GB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=16MB
+      - -c
+      - default_statistics_target=100
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - work_mem=16MB
+      - -c
+      - min_wal_size=1GB
+      - -c
+      - max_wal_size=4GB
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gitlab} -d ${POSTGRES_DB:-gitlabhq_production}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks: [gitlab_net]
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  redis-cache:
+    <<: *redis-common
+    container_name: gitlab-redis-cache
+    command:
+      - redis-server
+      - --requirepass
+      - ${GITLAB_REDIS_PASSWORD:?set GITLAB_REDIS_PASSWORD in .env}
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - ""
+
+  redis-persistent:
+    <<: *redis-common
+    container_name: gitlab-redis-persistent
+    command:
+      - redis-server
+      - --requirepass
+      - ${GITLAB_REDIS_PASSWORD:?set GITLAB_REDIS_PASSWORD in .env}
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    volumes:
+      - ./data/redis-persistent:/data
+
+  redis-sessions:
+    <<: *redis-common
+    container_name: gitlab-redis-sessions
+    command:
+      - redis-server
+      - --requirepass
+      - ${GITLAB_REDIS_PASSWORD:?set GITLAB_REDIS_PASSWORD in .env}
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    volumes:
+      - ./data/redis-sessions:/data
+
   gitlab:
-    image: gitlab/gitlab-ce:latest
-    restart: always
+    image: gitlab/gitlab-ce:${GITLAB_CE_VERSION:-18.11.6-ce.0}
+    container_name: gitlab
     hostname: gitlab
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-persistent:
+        condition: service_healthy
+      redis-sessions:
+        condition: service_healthy
     ports:
-      - "8000:80"
-      - "8443:443"
-      - "2222:22"
+      - "${GITLAB_HTTP_PORT:-8000}:80"
+      - "${GITLAB_HTTPS_PORT:-8443}:443"
+      - "${GITLAB_SSH_PORT:-2222}:22"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url '${GITLAB_URL:-http://localhost:8000}'
+        gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT:-2222}
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+
+        postgresql['enable'] = false
+        redis['enable'] = false
+
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'unicode'
+        gitlab_rails['db_host'] = 'postgresql'
+        gitlab_rails['db_port'] = 5432
+        gitlab_rails['db_username'] = '${POSTGRES_USER:-gitlab}'
+        gitlab_rails['db_password'] = '${POSTGRES_PASSWORD}'
+        gitlab_rails['db_database'] = '${POSTGRES_DB:-gitlabhq_production}'
+
+        gitlab_rails['redis_cache_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-cache:6379/0'
+        gitlab_rails['redis_repository_cache_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-cache:6379/1'
+        gitlab_rails['redis_queues_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-persistent:6379/0'
+        gitlab_rails['redis_shared_state_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-persistent:6379/1'
+        gitlab_rails['redis_trace_chunks_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-persistent:6379/2'
+        gitlab_rails['redis_rate_limiting_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-persistent:6379/3'
+        gitlab_rails['redis_actioncable_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-persistent:6379/4'
+        gitlab_rails['redis_sessions_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-sessions:6379/0'
+
+        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
+        gitlab_rails['internal_api_url'] = '${GITLAB_INTERNAL_URL:-http://gitlab}'
+        gitlab_rails['backup_keep_time'] = 604800
+
+        puma['worker_processes'] = ${GITLAB_PUMA_WORKERS:-4}
+        sidekiq['max_concurrency'] = ${GITLAB_SIDEKIQ_CONCURRENCY:-20}
+        prometheus_monitoring['enable'] = true
     volumes:
       - ./data/gitlab/config:/etc/gitlab
       - ./data/gitlab/log:/var/log/gitlab
       - ./data/gitlab/data:/var/opt/gitlab
-    environment:
-      TZ: ${TZ}
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url '${GITLAB_URL}'
-        gitlab_rails['gitlab_shell_ssh_port'] = 2222
-        nginx['listen_port'] = 80
-        nginx['listen_https'] = false
-        gitlab_rails['db_adapter'] = 'postgresql'
-        gitlab_rails['db_encoding'] = 'utf8'
-        gitlab_rails['db_host'] = 'postgresql'
-        gitlab_rails['db_port'] = 5432
-        gitlab_rails['db_username'] = 'gitlab'
-        gitlab_rails['db_password'] = 'gitlabpw'
-        gitlab_rails['db_database'] = 'gitlab'
-        gitlab_rails['redis_host'] = 'redis'
-        gitlab_rails['redis_port'] = 6379
-        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
-    depends_on: [redis, postgresql]
-    networks: [gitlab_net]
+      - ./data/gitlab/backups:/var/opt/gitlab/backups
+    shm_size: "256m"
+    ulimits:
+      sigpending: 62793
+      nproc: 131072
+      nofile: 65536
+      core: 0
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/-/readiness"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "/opt/gitlab/bin/gitlab-healthcheck", "--fail", "--max-time", "10"]
+      interval: 60s
+      timeout: 30s
       retries: 5
-      start_period: 120s
+      start_period: 300s
+    networks: [gitlab_net]
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
   gitlab-runner:
-    image: gitlab/gitlab-runner:alpine
+    image: gitlab/gitlab-runner:${GITLAB_RUNNER_VERSION:-alpine-v18.11.4}
     container_name: gitlab-runner
-    restart: always
+    restart: unless-stopped
     depends_on:
       gitlab:
         condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - ./data/gitlab-runner/config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - TZ=${TZ}
     networks: [gitlab_net]
-    entrypoint: ["/bin/sh", "-c"]
-    command: |
-      # 检查是否已经注册
-      if [ -f /etc/gitlab-runner/config.toml ] && grep -q "url" /etc/gitlab-runner/config.toml; then
-        echo "Runner 已注册，直接启动..."
-        exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
-      fi
-
-      echo "Runner 未注册，等待手动注册..."
-      echo "请使用以下步骤手动注册 Runner："
-      echo "1. 等待 GitLab 完全启动"
-      echo "2. 访问 ${GITLAB_URL}/admin/runners 获取注册令牌"
-      echo "3. 运行: docker exec -it gitlab-runner gitlab-runner register"
-      echo "4. 重启容器: docker-compose restart gitlab-runner"
-
-      # 保持容器运行，等待手动注册
-      while true; do
-        if [ -f /etc/gitlab-runner/config.toml ] && grep -q "url" /etc/gitlab-runner/config.toml; then
-          echo "检测到 Runner 配置，启动 Runner..."
-          exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
-        fi
-        echo "等待 Runner 注册..."
-        sleep 30
-      done
-networks:
-  gitlab_net:
-    driver: bridge
+    # ponytail: root + privileged for Docker socket on macOS; required for docker build CI jobs
+    user: "0:0"
+    privileged: ${GITLAB_RUNNER_PRIVILEGED:-true}
+    # Registration is handled by ./register-runner.sh; keep the service command simple
+    # (multiline sh -c breaks under compose — `[` gets parsed as a YAML list)
+    command: ["run", "--user=gitlab-runner", "--working-directory=/home/gitlab-runner"]

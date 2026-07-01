@@ -1,16 +1,16 @@
 # Graph Report - docker-compose  (2026-07-01)
 
 ## Corpus Check
-- 79 files · ~34,362 words
+- 79 files · ~34,024 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1485 nodes · 2212 edges · 90 communities (86 shown, 4 thin omitted)
+- 1487 nodes · 2219 edges · 90 communities (86 shown, 4 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3f035c45`
+- Built from commit: `25795506`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -253,8 +253,8 @@ Cohesion: 0.54
 Nodes (12): check_ports(), check_requirements(), cleanup_other_directories(), create_directories(), init_only(), log_error(), log_info(), log_success() (+4 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.14
-Nodes (20): CI 冒烟测试, code:bash (cd gitlab), code:bash (docker compose ps), code:bash (./register-runner.sh), code:env (GITLAB_URL=https://gitlab.devops.com), code:block5 (127.0.0.1 gitlab.devops.com), code:block6 (gitlab/), code:block7 (gitlab/) (+12 more)
+Cohesion: 0.13
+Nodes (21): CI 冒烟测试, code:bash (cd gitlab), code:bash (docker compose ps), code:env (GITLAB_URL=https://gitlab.devops.com), code:block4 (127.0.0.1 gitlab.devops.com), code:block5 (gitlab/), code:block6 (gitlab/), code:block7 (gitlab/) (+13 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.54
@@ -334,7 +334,7 @@ Nodes (12): check_ports(), check_requirements(), cleanup_other_directories(), cr
 
 ### Community 55 - "Community 55"
 Cohesion: 0.35
-Nodes (15): check_ports(), check_requirements(), create_directories(), ensure_env(), ensure_tls_config(), gen_password(), init_only(), log_error() (+7 more)
+Nodes (16): check_ports(), check_requirements(), create_directories(), ensure_env(), ensure_tls_config(), gen_password(), init_only(), log_error() (+8 more)
 
 ### Community 56 - "Community 56"
 Cohesion: 0.17
@@ -413,7 +413,7 @@ Cohesion: 0.80
 Nodes (4): api_pat(), log(), main(), wait_pipeline()
 
 ## Knowledge Gaps
-- **639 isolated node(s):** `id`, `private_key`, `public_key`, `preshared_key`, `name` (+634 more)
+- **640 isolated node(s):** `id`, `private_key`, `public_key`, `preshared_key`, `name` (+635 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -423,7 +423,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `OpenSpec Instructions` connect `Community 58` to `Community 65`, `Community 67`, `Community 68`, `Community 69`, `Community 70`, `Community 71`, `Community 60`, `Community 61`, `Community 63`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._
 - **What connects `id`, `private_key`, `public_key` to the rest of the system?**
-  _639 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _640 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

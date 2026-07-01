@@ -75,7 +75,7 @@ create_directories() {
   # shellcheck disable=SC1091
   source .env 2>/dev/null || true
   if [ "${GITLAB_LISTEN_HTTPS:-false}" = true ]; then
-    for f in "certs/${GITLAB_SSL_CERT:-fullchain.pem}" "certs/${GITLAB_SSL_KEY:-privkey.pem}"; do
+    for f in "certs/${GITLAB_SSL_CERT:-gitlab.devops.com.crt}" "certs/${GITLAB_SSL_KEY:-gitlab.devops.com.key}"; do
       [ -f "$f" ] || log_warn "HTTPS enabled but missing $f"
     done
   fi
@@ -92,14 +92,68 @@ check_ports() {
   done
 }
 
+register_runner() {
+  # shellcheck disable=SC1091
+  source .env
+  local cfg=data/gitlab-runner/config/config.toml
+  if [[ -f "$cfg" ]] && grep -q 'glrt-' "$cfg"; then
+    log_success "Runner already registered"
+    return 0
+  fi
+
+  docker ps --format '{{.Names}}' | grep -qx gitlab || {
+    log_error "gitlab container not running"
+    return 1
+  }
+
+  log_info "Waiting for GitLab..."
+  until docker exec gitlab gitlab-rails runner 'puts :ok' 2>/dev/null | grep -q ok; do sleep 5; done
+
+  log_info "Creating instance runner..."
+  local token name url image
+  name="${GITLAB_RUNNER_NAME:-gitlab-shared-runner}"
+  url="${GITLAB_INTERNAL_URL:-http://gitlab}"
+  image="gitlab/gitlab-runner:${GITLAB_RUNNER_VERSION:-alpine-v18.11.4}"
+
+  token=$(docker exec gitlab gitlab-rails runner "
+    r = Ci::Runners::CreateRunnerService.new(
+      user: User.find_by(username: 'root'),
+      params: {
+        runner_type: 'instance_type',
+        description: '${name}',
+        tag_list: '${GITLAB_RUNNER_TAG_LIST:-docker,shared}',
+        run_untagged: true,
+        locked: false
+      }
+    ).execute
+    raise r.message unless r.success?
+    puts r.payload[:runner].token
+  " 2>/dev/null | grep '^glrt-' | tr -d '\r\n')
+
+  docker run --rm --network gitlab_net \
+    -v "$(pwd)/data/gitlab-runner/config:/etc/gitlab-runner" \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    "$image" register --non-interactive \
+    --url "$url" --clone-url "$url" --token "$token" \
+    --executor docker --description "$name" \
+    --docker-image docker:27-alpine \
+    --docker-volumes /var/run/docker.sock:/var/run/docker.sock \
+    --docker-volumes /cache \
+    --docker-network-mode gitlab_net \
+    --docker-privileged
+
+  chmod 644 "$cfg"
+  log_success "Runner registered (instance, global)"
+}
+
 show_help() {
   cat <<EOF
-GitLab production bootstrap
+GitLab bootstrap
 
-Usage:
-  $0           Full deploy (init + docker compose up)
-  $0 --init    Create .env and data directories only
-  $0 --help    Show this help
+  $0                 Deploy all (GitLab first, then register runner)
+  $0 --init          Create .env and directories only
+  $0 --register-runner  Register runner only (needs gitlab running)
+  $0 --help
 EOF
 }
 
@@ -108,39 +162,37 @@ init_only() {
   ensure_env
   create_directories
   check_ports
-  log_success "Init complete. Review .env, then run: docker compose up -d"
+  log_success "Init complete — run: docker compose up -d"
 }
 
 main() {
   case "${1:-}" in
     --init) init_only; exit 0 ;;
+    --register-runner) check_requirements; ensure_env; register_runner; exit $? ;;
     --help|-h) show_help; exit 0 ;;
     "") ;;
     *) log_error "Unknown option: $1"; show_help; exit 1 ;;
   esac
 
-  log_info "Deploying GitLab stack..."
+  log_info "Deploying GitLab..."
   check_requirements
   ensure_env
   create_directories
   check_ports
 
   docker compose pull
-  docker compose up -d
+  docker compose up -d postgresql redis-cache redis-persistent redis-sessions gitlab
+  register_runner
+  docker compose up -d gitlab-runner
 
   # shellcheck disable=SC1091
   source .env
-
-  log_info "Registering global instance runner (if needed)..."
-  ./register-runner.sh || log_warn "Runner registration skipped or failed — retry with ./register-runner.sh"
-
-  log_success "GitLab stack started"
+  log_success "Done"
   echo
-  echo "URL:      ${GITLAB_URL:-http://localhost}"
-  echo "SSH git:  ssh://git@localhost:${GITLAB_SSH_PORT:-2222}/group/project.git"
-  echo "Root:     root / (see GITLAB_ROOT_PASSWORD in .env or data/.credentials)"
-  echo "Status:   docker compose ps"
-  echo "Logs:     docker compose logs -f gitlab"
+  echo "URL:    ${GITLAB_URL}"
+  echo "SSH:    ssh://git@${GITLAB_URL#*://}/...  (port ${GITLAB_SSH_PORT:-2222})"
+  echo "Root:   see data/.credentials"
+  echo "Status: docker compose ps"
 }
 
 main "$@"

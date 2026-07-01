@@ -47,24 +47,13 @@ docker compose logs -f gitlab
 
 访问 https://gitlab.devops.com（demo 自签证书，需在本机 `hosts` 添加 `127.0.0.1 gitlab.devops.com`），使用 `root` + `data/.credentials` 中的 `GITLAB_ROOT_PASSWORD` 登录。
 
-## GitLab Runner（全局实例 Runner）
+## GitLab Runner
 
-`./bootstrap.sh` 会在 GitLab 就绪后自动执行 `register-runner.sh`：
+`./bootstrap.sh` 会先启动 GitLab，注册全局实例 Runner，再启动 `gitlab-runner`。
 
-- **类型**：`instance_type`（实例级 Runner，所有项目/群组可用）
-- **无标签作业**：`run_untagged=true`，未指定 tag 的 CI 也能跑
-- **标签**：默认 `docker,shared`（可在 `.env` 改 `GITLAB_RUNNER_TAG_LIST`）
-- **执行器**：Docker + 挂载宿主机 `docker.sock`（支持 `docker build`）
+日常启停直接用 `docker compose up -d` / `down` 即可（`config.toml` 持久化在 `data/gitlab-runner/config/`）。
 
-手动重试注册：
-
-```bash
-./register-runner.sh
-```
-
-在 Admin → **CI/CD → Runners → Instance runners** 中可看到已注册的 Runner。
-
-> Runner 作业容器在 `gitlab_net` 内克隆代码，使用 `clone_url=http://gitlab`（勿用 `localhost`）。
+重新注册：删除 `data/gitlab-runner/config/config.toml` 后执行 `./bootstrap.sh --register-runner`。
 
 ## HTTPS（Omnibus 手动证书）
 

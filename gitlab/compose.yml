@@ -201,9 +201,5 @@ services:
       - ./data/gitlab-runner/config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
     networks: [gitlab_net]
-    # ponytail: root + privileged for Docker socket on macOS; required for docker build CI jobs
     user: "0:0"
     privileged: ${GITLAB_RUNNER_PRIVILEGED:-true}
-    # Registration is handled by ./register-runner.sh; keep the service command simple
-    # (multiline sh -c breaks under compose — `[` gets parsed as a YAML list)
-    command: ["run", "--user=gitlab-runner", "--working-directory=/home/gitlab-runner"]

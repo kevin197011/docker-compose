@@ -160,7 +160,7 @@ services:
         gitlab_rails['redis_sessions_instance'] = 'redis://:${GITLAB_REDIS_PASSWORD}@redis-sessions:6379/0'
 
         gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
-        gitlab_rails['internal_api_url'] = '${GITLAB_INTERNAL_URL:-http://gitlab}'
+        gitlab_rails['internal_api_url'] = '${GITLAB_INTERNAL_URL:-https://gitlab.devops.com}'
         gitlab_rails['backup_keep_time'] = 604800
 
         puma['worker_processes'] = ${GITLAB_PUMA_WORKERS:-4}
@@ -184,7 +184,10 @@ services:
       timeout: 30s
       retries: 5
       start_period: 300s
-    networks: [gitlab_net]
+    networks:
+      gitlab_net:
+        aliases:
+          - gitlab.devops.com
     deploy:
       resources:
         limits:
@@ -203,6 +206,7 @@ services:
       TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - ./data/gitlab-runner/config:/etc/gitlab-runner
+      - ./certs/${GITLAB_SSL_CERT:-gitlab.devops.com.crt}:/etc/gitlab-runner/certs/ca.crt:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks: [gitlab_net]
     user: "0:0"

@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "/Users/kevin/projects/src/docker-compose/gitlab/bootstrap.sh": {
-    "mtime": 1782876715.3371372,
-    "ast_hash": "ee3b95abf85b77f459c52a33bf274f4b",
+    "mtime": 1782878412.2184968,
+    "ast_hash": "6ad04c6f5bcfc1ce17be1dae641f92b1",
     "semantic_hash": ""
   },
   "/Users/kevin/projects/src/docker-compose/mariadb/bootstrap.sh": {
@@ -255,13 +255,13 @@
     "semantic_hash": ""
   },
   "/Users/kevin/projects/src/docker-compose/gitlab/README.md": {
-    "mtime": 1782876719.4403708,
-    "ast_hash": "0dcb645bd938bec84d93e18af0d18d9b",
+    "mtime": 1782878461.759561,
+    "ast_hash": "a089cda0d9cef43cc1a632fe888824f2",
     "semantic_hash": ""
   },
   "/Users/kevin/projects/src/docker-compose/gitlab/compose.yml": {
-    "mtime": 1782876717.2522895,
-    "ast_hash": "1f2b2dbbe4e9e70340a064acdb334ac5",
+    "mtime": 1782878234.9989455,
+    "ast_hash": "d94e105f5a149fdc9fb18b923dc710ad",
     "semantic_hash": ""
   },
   "/Users/kevin/projects/src/docker-compose/mariadb/README.md": {
@@ -597,11 +597,6 @@
   "/Users/kevin/projects/src/docker-compose/openspec/AGENTS.md": {
     "mtime": 1782801756.1288915,
     "ast_hash": "de4bb26b49a257b46c11303554231ba0",
-    "semantic_hash": ""
-  },
-  "/Users/kevin/projects/src/docker-compose/gitlab/register-runner.sh": {
-    "mtime": 1782876704.5941975,
-    "ast_hash": "fa3af01132df17d07bab71c5d2f0b06f",
     "semantic_hash": ""
   }
 }

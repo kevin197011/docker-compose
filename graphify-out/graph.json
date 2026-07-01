@@ -322,7 +322,7 @@
       "label": "gen_password()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L22",
+      "source_location": "L21",
       "id": "gitlab_bootstrap_gen_password",
       "community": 55,
       "norm_label": "gen_password()"
@@ -331,7 +331,7 @@
       "label": "ensure_env()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L26",
+      "source_location": "L23",
       "id": "gitlab_bootstrap_ensure_env",
       "community": 55,
       "norm_label": "ensure_env()"
@@ -340,64 +340,46 @@
       "label": "create_directories()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L62",
+      "source_location": "L59",
       "id": "gitlab_bootstrap_create_directories",
       "community": 55,
       "norm_label": "create_directories()"
     },
     {
-      "label": "check_ports()",
+      "label": "runner_ready()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L85",
-      "id": "gitlab_bootstrap_check_ports",
+      "source_location": "L73",
+      "id": "gitlab_bootstrap_runner_ready",
       "community": 55,
-      "norm_label": "check_ports()"
+      "norm_label": "runner_ready()"
     },
     {
       "label": "register_runner()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L95",
+      "source_location": "L77",
       "id": "gitlab_bootstrap_register_runner",
       "community": 55,
       "norm_label": "register_runner()"
     },
     {
-      "label": "show_help()",
+      "label": "reload_certs()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L149",
-      "id": "gitlab_bootstrap_show_help",
+      "source_location": "L140",
+      "id": "gitlab_bootstrap_reload_certs",
       "community": 55,
-      "norm_label": "show_help()"
-    },
-    {
-      "label": "init_only()",
-      "file_type": "code",
-      "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L160",
-      "id": "gitlab_bootstrap_init_only",
-      "community": 55,
-      "norm_label": "init_only()"
+      "norm_label": "reload_certs()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L168",
+      "source_location": "L151",
       "id": "gitlab_bootstrap_main",
       "community": 55,
       "norm_label": "main()"
-    },
-    {
-      "label": "register-runner.sh",
-      "file_type": "code",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L1",
-      "id": "gitlab_register_runner_sh",
-      "community": 87,
-      "norm_label": "register-runner.sh"
     },
     {
       "label": "bootstrap.sh",
@@ -4336,16 +4318,25 @@
       "label": "code:bash (docker compose ps)",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L43",
+      "source_location": "L37",
       "id": "gitlab_readme_codeblock_2",
       "community": 35,
       "norm_label": "code:bash (docker compose ps)"
     },
     {
+      "label": "\u65e5\u5e38\u8fd0\u7ef4",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L44",
+      "id": "gitlab_readme_\u65e5\u5e38\u8fd0\u7ef4",
+      "community": 35,
+      "norm_label": "\u65e5\u5e38\u8fd0\u7ef4"
+    },
+    {
       "label": "GitLab Runner",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L50",
+      "source_location": "L55",
       "id": "gitlab_readme_gitlab_runner",
       "community": 35,
       "norm_label": "gitlab runner"
@@ -4354,7 +4345,7 @@
       "label": "HTTPS\uff08Omnibus \u624b\u52a8\u8bc1\u4e66\uff09",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L58",
+      "source_location": "L61",
       "id": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66",
       "community": 35,
       "norm_label": "https(omnibus \u624b\u52a8\u8bc1\u4e66)"
@@ -4363,7 +4354,7 @@
       "label": "code:env (GITLAB_URL=https://gitlab.devops.com)",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L69",
+      "source_location": "L72",
       "id": "gitlab_readme_codeblock_3",
       "community": 35,
       "norm_label": "code:env (gitlab_url=https://gitlab.devops.com)"
@@ -4372,7 +4363,7 @@
       "label": "code:block4 (127.0.0.1 gitlab.devops.com)",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L79",
+      "source_location": "L82",
       "id": "gitlab_readme_codeblock_4",
       "community": 35,
       "norm_label": "code:block4 (127.0.0.1 gitlab.devops.com)"
@@ -4381,7 +4372,7 @@
       "label": "\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L87",
+      "source_location": "L90",
       "id": "gitlab_readme_\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879",
       "community": 35,
       "norm_label": "\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879"
@@ -4390,7 +4381,7 @@
       "label": "\u7aef\u53e3",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L94",
+      "source_location": "L97",
       "id": "gitlab_readme_\u7aef\u53e3",
       "community": 35,
       "norm_label": "\u7aef\u53e3"
@@ -4399,7 +4390,7 @@
       "label": "\u76ee\u5f55\u7ed3\u6784",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L102",
+      "source_location": "L105",
       "id": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784",
       "community": 35,
       "norm_label": "\u76ee\u5f55\u7ed3\u6784"
@@ -4408,7 +4399,7 @@
       "label": "code:block5 (gitlab/)",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L104",
+      "source_location": "L107",
       "id": "gitlab_readme_codeblock_5",
       "community": 35,
       "norm_label": "code:block5 (gitlab/)"
@@ -13162,6 +13153,42 @@
       "norm_label": "code:bash (openspec list              # what's in progress?)"
     },
     {
+      "label": "check_ports()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L85",
+      "community": 55,
+      "norm_label": "check_ports()",
+      "id": "gitlab_bootstrap_check_ports"
+    },
+    {
+      "label": "show_help()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L149",
+      "community": 55,
+      "norm_label": "show_help()",
+      "id": "gitlab_bootstrap_show_help"
+    },
+    {
+      "label": "init_only()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L160",
+      "community": 55,
+      "norm_label": "init_only()",
+      "id": "gitlab_bootstrap_init_only"
+    },
+    {
+      "label": "register-runner.sh",
+      "file_type": "code",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L1",
+      "community": 87,
+      "norm_label": "register-runner.sh",
+      "id": "gitlab_register_runner_sh"
+    },
+    {
       "label": "log_info()",
       "file_type": "code",
       "source_file": "gitlab/register-runner.sh",
@@ -14372,11 +14399,11 @@
       "relation": "defines",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L43",
+      "source_location": "L73",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_sh",
-      "target": "gitlab_bootstrap_check_ports"
+      "target": "gitlab_bootstrap_runner_ready",
+      "confidence_score": 1.0
     },
     {
       "relation": "defines",
@@ -14384,9 +14411,39 @@
       "source_file": "gitlab/bootstrap.sh",
       "source_location": "L95",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_sh",
-      "target": "gitlab_bootstrap_register_runner",
+      "target": "gitlab_bootstrap_register_runner"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_reload_certs",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_main"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L43",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_check_ports"
     },
     {
       "relation": "defines",
@@ -14407,16 +14464,6 @@
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_sh",
       "target": "gitlab_bootstrap_init_only"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L72",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_sh",
-      "target": "gitlab_bootstrap_main"
     },
     {
       "relation": "defines",
@@ -14455,9 +14502,9 @@
       "source_location": "L109",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_register_runner",
-      "target": "gitlab_bootstrap_log_info",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_log_info"
     },
     {
       "relation": "calls",
@@ -14474,22 +14521,55 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L18",
+      "source_location": "L53",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_check_requirements",
+      "source": "gitlab_bootstrap_ensure_env",
       "target": "gitlab_bootstrap_log_success"
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L53",
+      "source_location": "L100",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_ensure_env",
+      "source": "gitlab_bootstrap_register_runner",
+      "target": "gitlab_bootstrap_log_success"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L148",
+      "weight": 1.0,
+      "context": "call",
+      "source": "gitlab_bootstrap_reload_certs",
+      "target": "gitlab_bootstrap_log_success",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L89",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_log_success"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L18",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_check_requirements",
       "target": "gitlab_bootstrap_log_success"
     },
     {
@@ -14507,17 +14587,6 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L100",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_bootstrap_register_runner",
-      "target": "gitlab_bootstrap_log_success",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
       "source_location": "L69",
       "weight": 1.0,
       "context": "call",
@@ -14529,12 +14598,12 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L89",
+      "source_location": "L79",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_main",
-      "target": "gitlab_bootstrap_log_success"
+      "source": "gitlab_bootstrap_create_directories",
+      "target": "gitlab_bootstrap_log_warn"
     },
     {
       "relation": "calls",
@@ -14545,17 +14614,6 @@
       "context": "call",
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_ensure_env",
-      "target": "gitlab_bootstrap_log_warn"
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L79",
-      "weight": 1.0,
-      "context": "call",
-      "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_create_directories",
       "target": "gitlab_bootstrap_log_warn"
     },
     {
@@ -14606,17 +14664,6 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L105",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_bootstrap_register_runner",
-      "target": "gitlab_bootstrap_log_error",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
       "source_location": "L77",
       "weight": 1.0,
       "context": "call",
@@ -14628,12 +14675,12 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L65",
+      "source_location": "L105",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_init_only",
-      "target": "gitlab_bootstrap_check_requirements"
+      "source": "gitlab_bootstrap_register_runner",
+      "target": "gitlab_bootstrap_log_error"
     },
     {
       "relation": "calls",
@@ -14644,6 +14691,17 @@
       "context": "call",
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_check_requirements"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L65",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_init_only",
       "target": "gitlab_bootstrap_check_requirements"
     },
     {
@@ -14661,17 +14719,6 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L66",
-      "weight": 1.0,
-      "context": "call",
-      "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_init_only",
-      "target": "gitlab_bootstrap_ensure_env"
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
       "source_location": "L82",
       "weight": 1.0,
       "context": "call",
@@ -14683,12 +14730,12 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L67",
+      "source_location": "L66",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_init_only",
-      "target": "gitlab_bootstrap_create_directories"
+      "target": "gitlab_bootstrap_ensure_env"
     },
     {
       "relation": "calls",
@@ -14699,6 +14746,17 @@
       "context": "call",
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_create_directories"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L67",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_init_only",
       "target": "gitlab_bootstrap_create_directories"
     },
     {
@@ -14716,12 +14774,45 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L68",
+      "source_location": "L85",
+      "weight": 1.0,
+      "context": "call",
+      "source": "gitlab_bootstrap_register_runner",
+      "target": "gitlab_bootstrap_runner_ready",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L164",
+      "weight": 1.0,
+      "context": "call",
+      "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_runner_ready",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L171",
       "weight": 1.0,
       "context": "call",
       "confidence_score": 1.0,
-      "source": "gitlab_bootstrap_init_only",
-      "target": "gitlab_bootstrap_check_ports"
+      "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_register_runner"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L167",
+      "weight": 1.0,
+      "context": "call",
+      "source": "gitlab_bootstrap_main",
+      "target": "gitlab_bootstrap_reload_certs",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -14733,17 +14824,6 @@
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
       "target": "gitlab_bootstrap_check_ports"
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L171",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_bootstrap_main",
-      "target": "gitlab_bootstrap_register_runner",
-      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -14766,96 +14846,6 @@
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
       "target": "gitlab_bootstrap_init_only"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_log_info"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L12",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_log_success"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_log_warn"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_log_error"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L23",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_runner_config_valid"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_wait_for_gitlab"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L44",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_create_runner_token"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L68",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_register_runner"
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/register-runner.sh",
-      "source_location": "L101",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "gitlab_register_runner_sh",
-      "target": "gitlab_register_runner_main"
     },
     {
       "relation": "defines",
@@ -26490,11 +26480,21 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/README.md",
-      "source_location": "L50",
+      "source_location": "L44",
       "weight": 1.0,
       "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
-      "target": "gitlab_readme_gitlab_runner",
+      "target": "gitlab_readme_\u65e5\u5e38\u8fd0\u7ef4",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
+      "target": "gitlab_readme_gitlab_runner"
     },
     {
       "relation": "contains",
@@ -26602,9 +26602,9 @@
       "source_file": "gitlab/README.md",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66",
-      "target": "gitlab_readme_codeblock_3",
-      "confidence_score": 1.0
+      "target": "gitlab_readme_codeblock_3"
     },
     {
       "relation": "contains",
@@ -36159,6 +36159,107 @@
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L68",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_init_only",
+      "target": "gitlab_bootstrap_check_ports"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_log_info"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_log_success"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_log_warn"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_log_error"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_runner_config_valid"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_wait_for_gitlab"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_create_runner_token"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L68",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_register_runner"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/register-runner.sh",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_register_runner_sh",
+      "target": "gitlab_register_runner_main"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
       "source_file": "gitlab/register-runner.sh",
       "source_location": "L32",
       "weight": 1.0,
@@ -36383,5 +36484,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "25795506329e0bfb90e17adbde4cbe5765c91cdc"
+  "built_at_commit": "84ec57ff4e461696c1f7509d2be13f7ddc588bea"
 }

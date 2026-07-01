@@ -27,18 +27,12 @@ GitLab 官方建议 Docker 容器 `shm_size` ≥ 256MB（已配置）。
 
 ```bash
 cd gitlab
-
-# 1. 初始化（自动生成 .env 与各组件密码）
-./bootstrap.sh --init
-
-# 2. 启动
 ./bootstrap.sh
-# 或: docker compose up -d
 ```
 
-密码在首次 `./bootstrap.sh --init` 时由 `openssl rand -hex 16` 自动生成，写入 `.env` 并备份到 `data/.credentials`（已在 `.gitignore` 的 `data/` 下）。
+首次运行会自动创建 `.env`、目录、密码（写入 `data/.credentials`）。重复运行安全：拉取镜像、滚动更新、自动注册/修复 Runner、加载 HTTPS 证书，**不删 data/**。
 
-首次启动约 3-5 分钟。查看状态：
+首次启动约 3-5 分钟：
 
 ```bash
 docker compose ps
@@ -47,30 +41,22 @@ docker compose logs -f gitlab
 
 访问 https://gitlab.devops.com（demo 自签证书，需在本机 `hosts` 添加 `127.0.0.1 gitlab.devops.com`），使用 `root` + `data/.credentials` 中的 `GITLAB_ROOT_PASSWORD` 登录。
 
-## 日常运维（不丢数据）
+## 日常运维
 
-所有持久化数据在 `./data/`（PostgreSQL、Redis、GitLab 仓库、Runner 配置）。**重复执行 `./bootstrap.sh` 或 `docker compose up -d` 不会删除这些数据**。
+所有数据在 `./data/`。**只需 `./bootstrap.sh`**（或日常 `docker compose up -d` / `down`）。
 
 | 场景 | 命令 |
 |------|------|
-| 日常启停 | `docker compose up -d` / `docker compose down` |
-| 升级镜像 / 重复部署 | `./bootstrap.sh` |
-| 更换 HTTPS 证书 | 覆盖 `certs/` 内文件 → `./bootstrap.sh --certs` |
-| 仅初始化目录与密码 | `./bootstrap.sh --init`（仅首次） |
+| 部署 / 升级 / 换证书 / 重复更新 | `./bootstrap.sh` |
+| 日常启停 | `docker compose up -d` / `down` |
 
-注意：
-
-- **不要**删除 `data/` 或重新生成已有环境的 `.env`（密码与数据库绑定）
-- **不要**使用 `docker compose down -v`（本栈虽用 bind mount，仍避免误操作习惯）
-- 证书热更新用 `--certs`（`gitlab-ctl hup nginx`），无需重启整个 GitLab 容器
+注意：不要删 `data/` 或重生成已有环境的 `.env`。
 
 ## GitLab Runner
 
-`./bootstrap.sh` 首次会分步启动并注册 Runner；已有环境则直接 `compose up -d` 滚动更新。
+`./bootstrap.sh` 自动处理 Runner 注册；已有 `config.toml` 则跳过。
 
-日常启停直接用 `docker compose up -d` / `down` 即可（`config.toml` 持久化在 `data/gitlab-runner/config/`）。
-
-重新注册：删除 `data/gitlab-runner/config/config.toml` 后执行 `./bootstrap.sh --register-runner`。
+重新注册 Runner：删除 `data/gitlab-runner/config/config.toml` 后再跑 `./bootstrap.sh`。
 
 ## HTTPS（Omnibus 手动证书）
 
@@ -97,7 +83,7 @@ GITLAB_SSL_KEY=gitlab.devops.com.key
 127.0.0.1 gitlab.devops.com
 ```
 
-启用后 `docker compose up -d`，等待 GitLab reconfigure。**更换证书**：覆盖 `certs/` 内文件后执行 `./bootstrap.sh --certs`（不重启数据库、不丢仓库数据）。
+启用后 `./bootstrap.sh`。**更换证书**：覆盖 `certs/` 内文件后再跑 `./bootstrap.sh`。
 
 自定义文件名可改 `GITLAB_SSL_CERT`、`GITLAB_SSL_KEY`（容器内路径为 `/etc/gitlab/ssl/<文件名>`）。
 
@@ -123,7 +109,6 @@ gitlab/
 ├── compose.yml
 ├── .env.example
 ├── bootstrap.sh
-├── register-runner.sh
 ├── certs/                 # gitlab.devops.com.crt + .key
 └── data/
     ├── postgresql/

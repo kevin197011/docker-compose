@@ -69,15 +69,23 @@ create_directories() {
     data/gitlab/log \
     data/gitlab/data \
     data/gitlab/backups \
-    data/gitlab-runner/config
-  chmod +x bootstrap.sh register-runner.sh ci-smoke-test.sh 2>/dev/null || true
+    data/gitlab-runner/config \
+    certs
+  chmod +x bootstrap.sh register-runner.sh 2>/dev/null || true
+  # shellcheck disable=SC1091
+  source .env 2>/dev/null || true
+  if [ "${GITLAB_LISTEN_HTTPS:-false}" = true ]; then
+    for f in "certs/${GITLAB_SSL_CERT:-fullchain.pem}" "certs/${GITLAB_SSL_KEY:-privkey.pem}"; do
+      [ -f "$f" ] || log_warn "HTTPS enabled but missing $f"
+    done
+  fi
   log_success "Directories ready"
 }
 
 check_ports() {
   # shellcheck disable=SC1091
   source .env 2>/dev/null || true
-  for p in "${GITLAB_HTTP_PORT:-8000}" "${GITLAB_HTTPS_PORT:-8443}" "${GITLAB_SSH_PORT:-2222}"; do
+  for p in "${GITLAB_HTTP_PORT:-80}" "${GITLAB_HTTPS_PORT:-443}" "${GITLAB_SSH_PORT:-2222}"; do
     if (ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null) | grep -q ":${p} "; then
       log_warn "Port ${p} is already in use"
     fi
@@ -128,7 +136,7 @@ main() {
 
   log_success "GitLab stack started"
   echo
-  echo "URL:      ${GITLAB_URL:-http://localhost:8000}"
+  echo "URL:      ${GITLAB_URL:-http://localhost}"
   echo "SSH git:  ssh://git@localhost:${GITLAB_SSH_PORT:-2222}/group/project.git"
   echo "Root:     root / (see GITLAB_ROOT_PASSWORD in .env or data/.credentials)"
   echo "Status:   docker compose ps"

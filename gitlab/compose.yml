@@ -120,16 +120,20 @@ services:
       redis-sessions:
         condition: service_healthy
     ports:
-      - "${GITLAB_HTTP_PORT:-8000}:80"
-      - "${GITLAB_HTTPS_PORT:-8443}:443"
+      - "${GITLAB_HTTP_PORT:-80}:80"
+      - "${GITLAB_HTTPS_PORT:-443}:443"
       - "${GITLAB_SSH_PORT:-2222}:22"
     environment:
       TZ: ${TZ:-Asia/Shanghai}
       GITLAB_OMNIBUS_CONFIG: |
-        external_url '${GITLAB_URL:-http://localhost:8000}'
+        external_url '${GITLAB_URL:-http://localhost}'
         gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT:-2222}
         nginx['listen_port'] = 80
-        nginx['listen_https'] = false
+        nginx['listen_https'] = ${GITLAB_LISTEN_HTTPS:-false}
+        nginx['redirect_http_to_https'] = ${GITLAB_REDIRECT_HTTP_TO_HTTPS:-false}
+        nginx['ssl_certificate'] = "/etc/gitlab/ssl/${GITLAB_SSL_CERT:-fullchain.pem}"
+        nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/${GITLAB_SSL_KEY:-privkey.pem}"
+        letsencrypt['enable'] = false
 
         postgresql['enable'] = false
         redis['enable'] = false
@@ -163,6 +167,7 @@ services:
       - ./data/gitlab/log:/var/log/gitlab
       - ./data/gitlab/data:/var/opt/gitlab
       - ./data/gitlab/backups:/var/opt/gitlab/backups
+      - ./certs:/etc/gitlab/ssl:ro
     shm_size: "256m"
     ulimits:
       sigpending: 62793

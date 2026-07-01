@@ -1,16 +1,16 @@
-# Graph Report - docker-compose  (2026-06-30)
+# Graph Report - docker-compose  (2026-07-01)
 
 ## Corpus Check
-- 80 files · ~34,557 words
+- 79 files · ~34,362 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1476 nodes · 2193 edges · 89 communities (85 shown, 4 thin omitted)
+- 1485 nodes · 2212 edges · 90 communities (86 shown, 4 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `51ba24fe`
+- Built from commit: `3f035c45`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -110,7 +110,7 @@
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
 
-## Communities (89 total, 4 thin omitted)
+## Communities (90 total, 4 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -254,7 +254,7 @@ Nodes (12): check_ports(), check_requirements(), cleanup_other_directories(), cr
 
 ### Community 35 - "Community 35"
 Cohesion: 0.14
-Nodes (15): CI 冒烟测试, code:bash (cd gitlab), code:bash (docker compose ps), code:bash (./register-runner.sh), code:bash (./ci-smoke-test.sh), code:block5 (gitlab/), GitLab Docker Compose（生产级）, GitLab Runner（全局实例 Runner） (+7 more)
+Nodes (20): CI 冒烟测试, code:bash (cd gitlab), code:bash (docker compose ps), code:bash (./register-runner.sh), code:env (GITLAB_URL=https://gitlab.devops.com), code:block5 (127.0.0.1 gitlab.devops.com), code:block6 (gitlab/), code:block7 (gitlab/) (+12 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.54
@@ -333,8 +333,8 @@ Cohesion: 0.54
 Nodes (12): check_ports(), check_requirements(), cleanup_other_directories(), create_directories(), init_only(), log_error(), log_info(), log_success() (+4 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.45
-Nodes (12): check_ports(), check_requirements(), create_directories(), ensure_env(), gen_password(), init_only(), log_error(), log_info() (+4 more)
+Cohesion: 0.35
+Nodes (15): check_ports(), check_requirements(), create_directories(), ensure_env(), ensure_tls_config(), gen_password(), init_only(), log_error() (+7 more)
 
 ### Community 56 - "Community 56"
 Cohesion: 0.17

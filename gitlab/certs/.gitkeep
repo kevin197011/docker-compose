@@ -1,0 +1,6 @@
+# Demo TLS for gitlab.devops.com (self-signed, replace in real production)
+#   gitlab.devops.com.crt
+#   gitlab.devops.com.key
+#
+# Local access: add to /etc/hosts →  127.0.0.1 gitlab.devops.com
+# Renew: replace files, then: docker compose restart gitlab

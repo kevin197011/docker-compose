@@ -265,51 +265,6 @@
       "norm_label": "main()"
     },
     {
-      "label": "ci-smoke-test.sh",
-      "file_type": "code",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L1",
-      "id": "gitlab_ci_smoke_test_sh",
-      "community": 88,
-      "norm_label": "ci-smoke-test.sh"
-    },
-    {
-      "label": "log()",
-      "file_type": "code",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L12",
-      "id": "gitlab_ci_smoke_test_log",
-      "community": 88,
-      "norm_label": "log()"
-    },
-    {
-      "label": "api_pat()",
-      "file_type": "code",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L14",
-      "id": "gitlab_ci_smoke_test_api_pat",
-      "community": 88,
-      "norm_label": "api_pat()"
-    },
-    {
-      "label": "wait_pipeline()",
-      "file_type": "code",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L27",
-      "id": "gitlab_ci_smoke_test_wait_pipeline",
-      "community": 88,
-      "norm_label": "wait_pipeline()"
-    },
-    {
-      "label": "main()",
-      "file_type": "code",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L43",
-      "id": "gitlab_ci_smoke_test_main",
-      "community": 88,
-      "norm_label": "main()"
-    },
-    {
       "label": "bootstrap.sh",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
@@ -394,7 +349,7 @@
       "label": "check_ports()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L77",
+      "source_location": "L85",
       "id": "gitlab_bootstrap_check_ports",
       "community": 55,
       "norm_label": "check_ports()"
@@ -403,7 +358,7 @@
       "label": "show_help()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L87",
+      "source_location": "L95",
       "id": "gitlab_bootstrap_show_help",
       "community": 55,
       "norm_label": "show_help()"
@@ -412,7 +367,7 @@
       "label": "init_only()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L98",
+      "source_location": "L106",
       "id": "gitlab_bootstrap_init_only",
       "community": 55,
       "norm_label": "init_only()"
@@ -421,7 +376,7 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L106",
+      "source_location": "L114",
       "id": "gitlab_bootstrap_main",
       "community": 55,
       "norm_label": "main()"
@@ -4477,28 +4432,37 @@
       "norm_label": "code:bash (./register-runner.sh)"
     },
     {
-      "label": "CI \u5192\u70df\u6d4b\u8bd5",
-      "file_type": "document",
-      "source_file": "gitlab/README.md",
-      "source_location": "L67",
-      "id": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5",
-      "community": 35,
-      "norm_label": "ci \u5192\u70df\u6d4b\u8bd5"
-    },
-    {
-      "label": "code:bash (./ci-smoke-test.sh)",
+      "label": "HTTPS\uff08Omnibus \u624b\u52a8\u8bc1\u4e66\uff09",
       "file_type": "document",
       "source_file": "gitlab/README.md",
       "source_location": "L69",
+      "id": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66",
+      "community": 35,
+      "norm_label": "https(omnibus \u624b\u52a8\u8bc1\u4e66)"
+    },
+    {
+      "label": "code:env (GITLAB_URL=https://gitlab.devops.com)",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L80",
       "id": "gitlab_readme_codeblock_4",
       "community": 35,
-      "norm_label": "code:bash (./ci-smoke-test.sh)"
+      "norm_label": "code:env (gitlab_url=https://gitlab.devops.com)"
+    },
+    {
+      "label": "code:block5 (127.0.0.1 gitlab.devops.com)",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L90",
+      "id": "gitlab_readme_codeblock_5",
+      "community": 35,
+      "norm_label": "code:block5 (127.0.0.1 gitlab.devops.com)"
     },
     {
       "label": "\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L77",
+      "source_location": "L98",
       "id": "gitlab_readme_\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879",
       "community": 35,
       "norm_label": "\u751f\u4ea7\u6ce8\u610f\u4e8b\u9879"
@@ -4507,7 +4471,7 @@
       "label": "\u7aef\u53e3",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L85",
+      "source_location": "L105",
       "id": "gitlab_readme_\u7aef\u53e3",
       "community": 35,
       "norm_label": "\u7aef\u53e3"
@@ -4516,19 +4480,19 @@
       "label": "\u76ee\u5f55\u7ed3\u6784",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L93",
+      "source_location": "L113",
       "id": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784",
       "community": 35,
       "norm_label": "\u76ee\u5f55\u7ed3\u6784"
     },
     {
-      "label": "code:block5 (gitlab/)",
+      "label": "code:block6 (gitlab/)",
       "file_type": "document",
       "source_file": "gitlab/README.md",
-      "source_location": "L95",
-      "id": "gitlab_readme_codeblock_5",
+      "source_location": "L115",
+      "id": "gitlab_readme_codeblock_6",
       "community": 35,
-      "norm_label": "code:block5 (gitlab/)"
+      "norm_label": "code:block6 (gitlab/)"
     },
     {
       "label": "README.md",
@@ -13279,6 +13243,123 @@
       "norm_label": "code:bash (openspec list              # what's in progress?)"
     },
     {
+      "label": "sync_tls_env()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L62",
+      "community": 55,
+      "norm_label": "sync_tls_env()",
+      "id": "gitlab_bootstrap_sync_tls_env"
+    },
+    {
+      "label": "render_caddyfile()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L83",
+      "community": 55,
+      "norm_label": "render_caddyfile()",
+      "id": "gitlab_bootstrap_render_caddyfile"
+    },
+    {
+      "label": "ensure_tls_config()",
+      "file_type": "code",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L88",
+      "community": 55,
+      "norm_label": "ensure_tls_config()",
+      "id": "gitlab_bootstrap_ensure_tls_config"
+    },
+    {
+      "label": "render-caddyfile.sh",
+      "file_type": "code",
+      "source_file": "gitlab/config/render-caddyfile.sh",
+      "source_location": "L1",
+      "community": 89,
+      "norm_label": "render-caddyfile.sh",
+      "id": "gitlab_config_render_caddyfile_sh"
+    },
+    {
+      "label": "HTTPS / \u57df\u540d\u8bc1\u4e66\uff08Caddy\uff0c\u624b\u52a8\u66f4\u65b0\uff09",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L70",
+      "community": 35,
+      "norm_label": "https / \u57df\u540d\u8bc1\u4e66(caddy,\u624b\u52a8\u66f4\u65b0)",
+      "id": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy_\u624b\u52a8\u66f4\u65b0"
+    },
+    {
+      "label": "code:block7 (gitlab/)",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L125",
+      "community": 35,
+      "norm_label": "code:block7 (gitlab/)",
+      "id": "gitlab_readme_codeblock_7"
+    },
+    {
+      "label": "HTTPS / \u57df\u540d\u8bc1\u4e66\uff08Caddy\uff09",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L70",
+      "community": 35,
+      "norm_label": "https / \u57df\u540d\u8bc1\u4e66(caddy)",
+      "id": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy"
+    },
+    {
+      "label": "ci-smoke-test.sh",
+      "file_type": "code",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L1",
+      "community": 88,
+      "norm_label": "ci-smoke-test.sh",
+      "id": "gitlab_ci_smoke_test_sh"
+    },
+    {
+      "label": "log()",
+      "file_type": "code",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L12",
+      "community": 88,
+      "norm_label": "log()",
+      "id": "gitlab_ci_smoke_test_log"
+    },
+    {
+      "label": "api_pat()",
+      "file_type": "code",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L14",
+      "community": 88,
+      "norm_label": "api_pat()",
+      "id": "gitlab_ci_smoke_test_api_pat"
+    },
+    {
+      "label": "wait_pipeline()",
+      "file_type": "code",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L27",
+      "community": 88,
+      "norm_label": "wait_pipeline()",
+      "id": "gitlab_ci_smoke_test_wait_pipeline"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L43",
+      "community": 88,
+      "norm_label": "main()",
+      "id": "gitlab_ci_smoke_test_main"
+    },
+    {
+      "label": "CI \u5192\u70df\u6d4b\u8bd5",
+      "file_type": "document",
+      "source_file": "gitlab/README.md",
+      "source_location": "L67",
+      "community": 35,
+      "norm_label": "ci \u5192\u70df\u6d4b\u8bd5",
+      "id": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5"
+    },
+    {
       "label": "\u6ce8\u518c GitLab Runner",
       "file_type": "document",
       "source_file": "gitlab/README.md",
@@ -14192,90 +14273,6 @@
     {
       "relation": "defines",
       "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L12",
-      "weight": 1.0,
-      "source": "gitlab_ci_smoke_test_sh",
-      "target": "gitlab_ci_smoke_test_log",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L14",
-      "weight": 1.0,
-      "source": "gitlab_ci_smoke_test_sh",
-      "target": "gitlab_ci_smoke_test_api_pat",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L27",
-      "weight": 1.0,
-      "source": "gitlab_ci_smoke_test_sh",
-      "target": "gitlab_ci_smoke_test_wait_pipeline",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "gitlab_ci_smoke_test_sh",
-      "target": "gitlab_ci_smoke_test_main",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L33",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_ci_smoke_test_wait_pipeline",
-      "target": "gitlab_ci_smoke_test_log",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L49",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_ci_smoke_test_main",
-      "target": "gitlab_ci_smoke_test_log",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L48",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_ci_smoke_test_main",
-      "target": "gitlab_ci_smoke_test_api_pat",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "source_file": "gitlab/ci-smoke-test.sh",
-      "source_location": "L82",
-      "weight": 1.0,
-      "context": "call",
-      "source": "gitlab_ci_smoke_test_main",
-      "target": "gitlab_ci_smoke_test_wait_pipeline",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "defines",
-      "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
       "source_location": "L10",
       "weight": 1.0,
@@ -14394,6 +14391,36 @@
       "target": "gitlab_bootstrap_main"
     },
     {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_sync_tls_env"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L93",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_render_caddyfile"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L98",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_sh",
+      "target": "gitlab_bootstrap_ensure_tls_config"
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/bootstrap.sh",
@@ -14468,6 +14495,17 @@
       "context": "call",
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_ensure_env",
+      "target": "gitlab_bootstrap_log_warn"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L79",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_create_directories",
       "target": "gitlab_bootstrap_log_warn"
     },
     {
@@ -14601,6 +14639,17 @@
       "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
       "target": "gitlab_bootstrap_create_directories"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L116",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_create_directories",
+      "target": "gitlab_bootstrap_ensure_tls_config"
     },
     {
       "relation": "calls",
@@ -26478,6 +26527,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/README.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
+      "target": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
       "source_location": "L59",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -26503,6 +26562,26 @@
       "confidence_score": 1.0,
       "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
       "target": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
+      "target": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy_\u624b\u52a8\u66f4\u65b0"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
+      "target": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy"
     },
     {
       "relation": "contains",
@@ -26550,9 +26629,9 @@
       "source_file": "gitlab/README.md",
       "source_location": "L67",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_readme_gitlab_runner_\u5168\u5c40\u5b9e\u4f8b_runner",
-      "target": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5",
-      "confidence_score": 1.0
+      "target": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5"
     },
     {
       "relation": "contains",
@@ -26568,10 +26647,20 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/README.md",
-      "source_location": "L69",
+      "source_location": "L80",
       "weight": 1.0,
-      "source": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5",
-      "target": "gitlab_readme_codeblock_4",
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66",
+      "target": "gitlab_readme_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "gitlab_readme_https_omnibus_\u624b\u52a8\u8bc1\u4e66",
+      "target": "gitlab_readme_codeblock_5",
       "confidence_score": 1.0
     },
     {
@@ -26588,11 +26677,91 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "gitlab/README.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy_\u624b\u52a8\u66f4\u65b0",
+      "target": "gitlab_readme_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy",
+      "target": "gitlab_readme_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_ci_\u5192\u70df\u6d4b\u8bd5",
+      "target": "gitlab_readme_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
       "source_location": "L95",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784",
-      "target": "gitlab_readme_codeblock_5",
-      "confidence_score": 1.0
+      "target": "gitlab_readme_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy_\u624b\u52a8\u66f4\u65b0",
+      "target": "gitlab_readme_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy",
+      "target": "gitlab_readme_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L118",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784",
+      "target": "gitlab_readme_codeblock_6"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_\u76ee\u5f55\u7ed3\u6784",
+      "target": "gitlab_readme_codeblock_7"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/README.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_readme_https_\u57df\u540d\u8bc1\u4e66_caddy_\u624b\u52a8\u66f4\u65b0",
+      "target": "gitlab_readme_codeblock_6"
     },
     {
       "relation": "contains",
@@ -36013,8 +36182,114 @@
       "confidence_score": 1.0,
       "source": "openspec_agents_cli_essentials",
       "target": "openspec_agents_codeblock_16"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L99",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_ensure_tls_config",
+      "target": "gitlab_bootstrap_sync_tls_env"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/bootstrap.sh",
+      "source_location": "L100",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_bootstrap_ensure_tls_config",
+      "target": "gitlab_bootstrap_render_caddyfile"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_sh",
+      "target": "gitlab_ci_smoke_test_log"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_sh",
+      "target": "gitlab_ci_smoke_test_api_pat"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_sh",
+      "target": "gitlab_ci_smoke_test_wait_pipeline"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L43",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_sh",
+      "target": "gitlab_ci_smoke_test_main"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L33",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_wait_pipeline",
+      "target": "gitlab_ci_smoke_test_log"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L49",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_main",
+      "target": "gitlab_ci_smoke_test_log"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L48",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_main",
+      "target": "gitlab_ci_smoke_test_api_pat"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "gitlab/ci-smoke-test.sh",
+      "source_location": "L82",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "gitlab_ci_smoke_test_main",
+      "target": "gitlab_ci_smoke_test_wait_pipeline"
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "51ba24fe9175960073cffb3fe4dad4b22dc9cd7a"
+  "built_at_commit": "3f035c451159835324563e69aa5e93a9e144ffd9"
 }

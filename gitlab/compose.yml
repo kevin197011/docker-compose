@@ -128,15 +128,19 @@ services:
       GITLAB_OMNIBUS_CONFIG: |
         external_url '${GITLAB_URL:-http://localhost}'
         gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT:-2222}
-        nginx['listen_port'] = 80
         nginx['listen_https'] = ${GITLAB_LISTEN_HTTPS:-false}
         nginx['redirect_http_to_https'] = ${GITLAB_REDIRECT_HTTP_TO_HTTPS:-false}
+        nginx['default_server_enabled'] = false
         nginx['ssl_certificate'] = "/etc/gitlab/ssl/${GITLAB_SSL_CERT:-fullchain.pem}"
         nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/${GITLAB_SSL_KEY:-privkey.pem}"
         letsencrypt['enable'] = false
 
         postgresql['enable'] = false
         redis['enable'] = false
+
+        gitlab_kas['redis_host'] = 'redis-persistent'
+        gitlab_kas['redis_port'] = 6379
+        gitlab_kas['redis_password'] = '${GITLAB_REDIS_PASSWORD}'
 
         gitlab_rails['db_adapter'] = 'postgresql'
         gitlab_rails['db_encoding'] = 'unicode'

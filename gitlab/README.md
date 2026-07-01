@@ -47,9 +47,26 @@ docker compose logs -f gitlab
 
 访问 https://gitlab.devops.com（demo 自签证书，需在本机 `hosts` 添加 `127.0.0.1 gitlab.devops.com`），使用 `root` + `data/.credentials` 中的 `GITLAB_ROOT_PASSWORD` 登录。
 
+## 日常运维（不丢数据）
+
+所有持久化数据在 `./data/`（PostgreSQL、Redis、GitLab 仓库、Runner 配置）。**重复执行 `./bootstrap.sh` 或 `docker compose up -d` 不会删除这些数据**。
+
+| 场景 | 命令 |
+|------|------|
+| 日常启停 | `docker compose up -d` / `docker compose down` |
+| 升级镜像 / 重复部署 | `./bootstrap.sh` |
+| 更换 HTTPS 证书 | 覆盖 `certs/` 内文件 → `./bootstrap.sh --certs` |
+| 仅初始化目录与密码 | `./bootstrap.sh --init`（仅首次） |
+
+注意：
+
+- **不要**删除 `data/` 或重新生成已有环境的 `.env`（密码与数据库绑定）
+- **不要**使用 `docker compose down -v`（本栈虽用 bind mount，仍避免误操作习惯）
+- 证书热更新用 `--certs`（`gitlab-ctl hup nginx`），无需重启整个 GitLab 容器
+
 ## GitLab Runner
 
-`./bootstrap.sh` 会先启动 GitLab，注册全局实例 Runner，再启动 `gitlab-runner`。
+`./bootstrap.sh` 首次会分步启动并注册 Runner；已有环境则直接 `compose up -d` 滚动更新。
 
 日常启停直接用 `docker compose up -d` / `down` 即可（`config.toml` 持久化在 `data/gitlab-runner/config/`）。
 
@@ -80,7 +97,7 @@ GITLAB_SSL_KEY=gitlab.devops.com.key
 127.0.0.1 gitlab.devops.com
 ```
 
-启用后 `docker compose up -d`，等待 GitLab reconfigure。**更换证书**：覆盖 `certs/` 内文件后 `docker compose restart gitlab`。
+启用后 `docker compose up -d`，等待 GitLab reconfigure。**更换证书**：覆盖 `certs/` 内文件后执行 `./bootstrap.sh --certs`（不重启数据库、不丢仓库数据）。
 
 自定义文件名可改 `GITLAB_SSL_CERT`、`GITLAB_SSL_KEY`（容器内路径为 `/etc/gitlab/ssl/<文件名>`）。
 

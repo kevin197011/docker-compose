@@ -28,6 +28,11 @@ ensure_env() {
     return
   fi
 
+  if [[ -n "$(ls -A data/postgresql 2>/dev/null)" ]]; then
+    log_error "data/postgresql exists but .env is missing — restore .env (or data/.credentials), do not regenerate passwords"
+    exit 1
+  fi
+
   [[ -f .env.example ]] || { log_error ".env.example not found"; exit 1; }
 
   local root_pass pg_pass redis_pass
@@ -83,12 +88,14 @@ create_directories() {
 }
 
 check_ports() {
+  # ponytail: skip on re-deploy — compose will error if ports truly conflict
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx gitlab && return 0
+
   # shellcheck disable=SC1091
   source .env 2>/dev/null || true
   for p in "${GITLAB_HTTP_PORT:-80}" "${GITLAB_HTTPS_PORT:-443}" "${GITLAB_SSH_PORT:-2222}"; do
-    if (ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null) | grep -q ":${p} "; then
-      log_warn "Port ${p} is already in use"
-    fi
+    lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 || continue
+    log_warn "Port ${p} is in use — stop the other service or change GITLAB_*_PORT in .env"
   done
 }
 
@@ -146,14 +153,54 @@ register_runner() {
   log_success "Runner registered (instance, global)"
 }
 
+is_existing_deploy() {
+  [[ -f data/gitlab/config/gitlab.rb ]]
+}
+
+deploy_stack() {
+  docker compose pull
+  if is_existing_deploy; then
+    log_info "Existing install — rolling update (data/ and .env unchanged)"
+    docker compose up -d
+    register_runner
+    return
+  fi
+
+  log_info "First install — starting core services, then runner..."
+  docker compose up -d postgresql redis-cache redis-persistent redis-sessions gitlab
+  register_runner
+  docker compose up -d gitlab-runner
+}
+
+reload_certs() {
+  # shellcheck disable=SC1091
+  source .env
+  local cert="certs/${GITLAB_SSL_CERT:-gitlab.devops.com.crt}"
+  local key="certs/${GITLAB_SSL_KEY:-gitlab.devops.com.key}"
+  for f in "$cert" "$key"; do
+    [[ -f "$f" ]] || { log_error "Missing $f"; exit 1; }
+  done
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx gitlab || {
+    log_error "gitlab not running — start with: docker compose up -d gitlab"
+    exit 1
+  }
+  log_info "Reloading nginx with certs from ./certs/ (no data migration)..."
+  docker exec gitlab gitlab-ctl hup nginx
+  log_success "HTTPS certs reloaded — database, repos, and Redis untouched"
+}
+
 show_help() {
   cat <<EOF
 GitLab bootstrap
 
-  $0                 Deploy all (GitLab first, then register runner)
-  $0 --init          Create .env and directories only
+  $0                    Deploy or update (preserves data/ on repeat runs)
+  $0 --init             Create .env and directories only (first time)
+  $0 --certs            Reload HTTPS certs after replacing files in certs/
   $0 --register-runner  Register runner only (needs gitlab running)
   $0 --help
+
+Repeat deploy / version bump: safe — bind mounts under data/ are never removed.
+Cert rotation: replace certs/*.crt and *.key, then run $0 --certs
 EOF
 }
 
@@ -168,6 +215,7 @@ init_only() {
 main() {
   case "${1:-}" in
     --init) init_only; exit 0 ;;
+    --certs) check_requirements; ensure_env; reload_certs; exit 0 ;;
     --register-runner) check_requirements; ensure_env; register_runner; exit $? ;;
     --help|-h) show_help; exit 0 ;;
     "") ;;
@@ -178,12 +226,7 @@ main() {
   check_requirements
   ensure_env
   create_directories
-  check_ports
-
-  docker compose pull
-  docker compose up -d postgresql redis-cache redis-persistent redis-sessions gitlab
-  register_runner
-  docker compose up -d gitlab-runner
+  deploy_stack
 
   # shellcheck disable=SC1091
   source .env

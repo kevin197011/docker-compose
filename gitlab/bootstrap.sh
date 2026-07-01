@@ -124,6 +124,9 @@ register_runner() {
     docker run --rm --network gitlab_net
     -v "$(pwd)/data/gitlab-runner/config:/etc/gitlab-runner"
     -v /var/run/docker.sock:/var/run/docker.sock
+  )
+  [[ "$url" == https://* && -f "$cert" ]] && cmd+=(-v "$(pwd)/${cert}:${tls_ca}:ro")
+  cmd+=(
     "$image" register --non-interactive
     --url "$url" --clone-url "$url" --token "$token"
     --executor docker --description "$name"
@@ -131,7 +134,7 @@ register_runner() {
     --docker-volumes /var/run/docker.sock:/var/run/docker.sock
     --docker-volumes /cache --docker-network-mode gitlab_net --docker-privileged
   )
-  [[ "$url" == https://* && -f "$cert" ]] && cmd+=(-v "$(pwd)/${cert}:${tls_ca}:ro" --tls-ca-file "$tls_ca")
+  [[ "$url" == https://* && -f "$cert" ]] && cmd+=(--tls-ca-file "$tls_ca")
   "${cmd[@]}"
   chmod 644 "$cfg"
   log_success "Runner registered"

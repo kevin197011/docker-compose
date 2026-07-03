@@ -28,7 +28,7 @@
     <mirror>
       <id>nexus</id>
       <name>Nexus Maven Public</name>
-      <url>http://maven.devops.com:8080/repository/maven-public/</url>
+      <url>http://maven.devops.com:8081/repository/maven-public/</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
@@ -39,7 +39,7 @@
       <repositories>
         <repository>
           <id>nexus</id>
-          <url>http://maven.devops.com:8080/repository/maven-public/</url>
+          <url>http://maven.devops.com:8081/repository/maven-public/</url>
           <releases><enabled>true</enabled></releases>
           <snapshots><enabled>true</enabled></snapshots>
         </repository>
@@ -47,7 +47,7 @@
       <pluginRepositories>
         <pluginRepository>
           <id>nexus</id>
-          <url>http://maven.devops.com:8080/repository/maven-public/</url>
+          <url>http://maven.devops.com:8081/repository/maven-public/</url>
           <releases><enabled>true</enabled></releases>
           <snapshots><enabled>true</enabled></snapshots>
         </pluginRepository>

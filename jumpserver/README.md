@@ -108,13 +108,17 @@ docker compose down
 docker compose down -v
 ```
 
-## 🔗 访问地址
+## 🔗 访问地址与默认密码
 
-服务启动后，可以通过以下地址访问：
+| 用途 | 地址 / 连接 | 账号 | 密码 |
+|------|-------------|------|------|
+| Web 控制台 | http://localhost | `admin` | `ChangeMe` |
+| SSH 堡垒机 | `ssh -p 2222 admin@localhost` | `admin` | `ChangeMe` |
+| MySQL | `localhost:3306` / 库 `jumpserver` | `jumpserver` | `ruU1y_bwMiFadh7mbvLawg==` |
+| MySQL root | `localhost:3306` | `root` | `VNyupGRpS9Ah8vd3F6gpsA==` |
+| Redis | `localhost:6379` | — | `6qDCfy1WYMQwzxXhIBflig==` |
 
-- **JumpServer Web**: http://localhost
-- **JumpServer SSH**: localhost:2222
-- **默认账号**: admin / ChangeMe（首次登录后需修改密码）
+Web 首次登录后需修改 `admin` 密码。以上密码定义在 `compose.yml`，生产环境请全部更换。
 
 **注意**: 使用 `jms_all` 一体化镜像，所有组件（Core、Koko、Lion、Web、Magnus）都运行在同一个容器中。
 

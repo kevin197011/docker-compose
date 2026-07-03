@@ -367,7 +367,7 @@
       "label": "reload_certs()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L140",
+      "source_location": "L143",
       "id": "gitlab_bootstrap_reload_certs",
       "community": 55,
       "norm_label": "reload_certs()"
@@ -376,7 +376,7 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "gitlab/bootstrap.sh",
-      "source_location": "L151",
+      "source_location": "L154",
       "id": "gitlab_bootstrap_main",
       "community": 55,
       "norm_label": "main()"
@@ -1271,6 +1271,69 @@
       "id": "users_admin_admin",
       "community": 66,
       "norm_label": "admin"
+    },
+    {
+      "label": "bootstrap.sh",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L1",
+      "id": "maven_bootstrap_sh",
+      "community": 90,
+      "norm_label": "bootstrap.sh"
+    },
+    {
+      "label": "log_info()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L9",
+      "id": "maven_bootstrap_log_info",
+      "community": 90,
+      "norm_label": "log_info()"
+    },
+    {
+      "label": "log_success()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L10",
+      "id": "maven_bootstrap_log_success",
+      "community": 90,
+      "norm_label": "log_success()"
+    },
+    {
+      "label": "log_error()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L11",
+      "id": "maven_bootstrap_log_error",
+      "community": 90,
+      "norm_label": "log_error()"
+    },
+    {
+      "label": "check_requirements()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L13",
+      "id": "maven_bootstrap_check_requirements",
+      "community": 90,
+      "norm_label": "check_requirements()"
+    },
+    {
+      "label": "ensure_env()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L18",
+      "id": "maven_bootstrap_ensure_env",
+      "community": 90,
+      "norm_label": "ensure_env()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L25",
+      "id": "maven_bootstrap_main",
+      "community": 90,
+      "norm_label": "main()"
     },
     {
       "label": "bootstrap.sh",
@@ -14401,9 +14464,9 @@
       "source_file": "gitlab/bootstrap.sh",
       "source_location": "L73",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_sh",
-      "target": "gitlab_bootstrap_runner_ready",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_runner_ready"
     },
     {
       "relation": "defines",
@@ -14421,9 +14484,9 @@
       "source_file": "gitlab/bootstrap.sh",
       "source_location": "L140",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_sh",
-      "target": "gitlab_bootstrap_reload_certs",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_reload_certs"
     },
     {
       "relation": "defines",
@@ -14546,9 +14609,9 @@
       "source_location": "L148",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_reload_certs",
-      "target": "gitlab_bootstrap_log_success",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_log_success"
     },
     {
       "relation": "calls",
@@ -14777,9 +14840,9 @@
       "source_location": "L85",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_register_runner",
-      "target": "gitlab_bootstrap_runner_ready",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_runner_ready"
     },
     {
       "relation": "calls",
@@ -14788,9 +14851,9 @@
       "source_location": "L164",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
-      "target": "gitlab_bootstrap_runner_ready",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_runner_ready"
     },
     {
       "relation": "calls",
@@ -14810,9 +14873,9 @@
       "source_location": "L167",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "gitlab_bootstrap_main",
-      "target": "gitlab_bootstrap_reload_certs",
-      "confidence_score": 1.0
+      "target": "gitlab_bootstrap_reload_certs"
     },
     {
       "relation": "calls",
@@ -17036,6 +17099,154 @@
       "confidence_score": 1.0,
       "source": "wireguard_ui_db_users_admin_json",
       "target": "users_admin_admin"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_log_info",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_log_success",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_log_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_check_requirements",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_ensure_env",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "maven_bootstrap_sh",
+      "target": "maven_bootstrap_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L32",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_main",
+      "target": "maven_bootstrap_log_info",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L22",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_ensure_env",
+      "target": "maven_bootstrap_log_success",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L43",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_main",
+      "target": "maven_bootstrap_log_success",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L14",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_check_requirements",
+      "target": "maven_bootstrap_log_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L20",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_ensure_env",
+      "target": "maven_bootstrap_log_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L30",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_main",
+      "target": "maven_bootstrap_log_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L33",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_main",
+      "target": "maven_bootstrap_check_requirements",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "maven/bootstrap.sh",
+      "source_location": "L34",
+      "weight": 1.0,
+      "context": "call",
+      "source": "maven_bootstrap_main",
+      "target": "maven_bootstrap_ensure_env",
+      "confidence_score": 1.0
     },
     {
       "relation": "defines",
@@ -26482,9 +26693,9 @@
       "source_file": "gitlab/README.md",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "gitlab_readme_gitlab_docker_compose_\u751f\u4ea7\u7ea7",
-      "target": "gitlab_readme_\u65e5\u5e38\u8fd0\u7ef4",
-      "confidence_score": 1.0
+      "target": "gitlab_readme_\u65e5\u5e38\u8fd0\u7ef4"
     },
     {
       "relation": "contains",
@@ -36484,5 +36695,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "84ec57ff4e461696c1f7509d2be13f7ddc588bea"
+  "built_at_commit": "673c4f55665bd6964a91a1770d9a6227bdb875aa"
 }

@@ -1,0 +1,26 @@
+networks:
+  maven_net:
+    name: maven_net
+
+services:
+  nexus:
+    image: sonatype/nexus3:${NEXUS_VERSION:-3.75.1}
+    container_name: nexus
+    hostname: nexus
+    restart: unless-stopped
+    ports:
+      - "${NEXUS_HTTP_PORT:-8080}:8081"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - ./data/nexus-data:/nexus-data
+    networks:
+      maven_net:
+        aliases:
+          - maven.devops.com
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s

@@ -1,0 +1,16 @@
+<!--
+  合并到项目 pom.xml 的 <project> 内，用于 mvn deploy 发布到私服。
+  server id 需与 config/settings.xml 中 nexus-releases / nexus-snapshots 一致。
+-->
+<!--
+  <distributionManagement>
+    <repository>
+      <id>nexus-releases</id>
+      <url>http://maven.devops.com:8080/repository/maven-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <url>http://maven.devops.com:8080/repository/maven-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+-->

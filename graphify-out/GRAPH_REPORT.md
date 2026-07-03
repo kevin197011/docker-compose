@@ -1,16 +1,16 @@
-# Graph Report - docker-compose  (2026-07-01)
+# Graph Report - docker-compose  (2026-07-03)
 
 ## Corpus Check
-- 78 files · ~34,014 words
+- 79 files · ~34,262 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1490 nodes · 2226 edges · 90 communities (86 shown, 4 thin omitted)
+- 1497 nodes · 2240 edges · 91 communities (87 shown, 4 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `84ec57ff`
+- Built from commit: `673c4f55`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -94,6 +94,7 @@
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
+- [[_COMMUNITY_Community 90|Community 90]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Gaia Pipeline Docker Compose 部署` - 15 edges
@@ -110,7 +111,7 @@
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
 
-## Communities (90 total, 4 thin omitted)
+## Communities (91 total, 4 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -411,6 +412,10 @@ Nodes (7): create_runner_token(), log_error(), log_info(), log_success(), main()
 ### Community 88 - "Community 88"
 Cohesion: 0.80
 Nodes (4): api_pat(), log(), main(), wait_pipeline()
+
+### Community 90 - "Community 90"
+Cohesion: 0.67
+Nodes (6): check_requirements(), ensure_env(), log_error(), log_info(), log_success(), main()
 
 ## Knowledge Gaps
 - **641 isolated node(s):** `id`, `private_key`, `public_key`, `preshared_key`, `name` (+636 more)

@@ -7,14 +7,14 @@ services:
     networks:
       - graylog
     volumes:
-      - ./mongo_data:/data/db
+      - ./data/mongo:/data/db
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     container_name: graylog_elasticsearch
     restart: unless-stopped
     volumes:
-      - ./es_data:/var/lib/elasticsearch/data
+      - ./data/elasticsearch:/var/lib/elasticsearch/data
     environment:
       - http.host=0.0.0.0
       - transport.host=localhost
@@ -36,9 +36,9 @@ services:
     image: graylog/graylog:5.1
     container_name: graylog_graylog
     volumes:
-      # chown -R 1100:1100 ./graylog_data_journal
-      - ./graylog_data_journal:/usr/share/graylog/data/journal
-      # - ./graylog.conf:/usr/share/graylog/data/config/graylog.conf
+      # chown -R 1100:1100 ./data/graylog/journal
+      - ./data/graylog/journal:/usr/share/graylog/data/journal
+      # - ./config/graylog.conf:/usr/share/graylog/data/config/graylog.conf
     environment:
       # CHANGE ME (must be at least 16 characters)!
       - GRAYLOG_PASSWORD_SECRET=somepasswordpepper

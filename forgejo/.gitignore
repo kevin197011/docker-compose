@@ -1,5 +1,0 @@
-# Environment variables (contain sensitive data)
-.env
-
-# Forgejo data directories
-data/

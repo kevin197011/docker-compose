@@ -52,5 +52,5 @@ services:
       options:
         max-size: 50m
     volumes:
-      - ./db:/app/db
+      - ./data/db:/app/db
       - ./config:/etc/wireguard

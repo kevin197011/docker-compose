@@ -1,0 +1,9 @@
+.env
+harbor.yml
+compose.yml
+docker-compose.yml
+input/
+data/.credentials
+config/certs/*.key
+config/harbor/
+__pycache__/

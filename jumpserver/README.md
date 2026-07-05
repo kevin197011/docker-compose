@@ -1,204 +1,30 @@
-# JumpServer Docker Compose 部署
+# JumpServer
 
-## 📖 项目简介
+JumpServer 堡垒机（jms_all）。
 
-开源的堡垒机，提供安全的远程访问解决方案。本配置使用 `jumpserver/jms_all` 一体化镜像，包含所有 JumpServer 组件（Core、Koko、Lion、Web、Magnus）。
-
-## ✨ 功能特性
-
-- 🚀 一键部署，开箱即用
-- 🔧 自动环境检查和初始化
-- 📊 健康检查和服务监控
-- 🛠️ 完整的数据持久化
-- 🔄 支持服务重启和升级
-- 📋 详细的日志记录
-
-## 🚀 快速开始
-
-### 方式一：一键部署（推荐）
+## 部署
 
 ```bash
-# 克隆项目
-git clone <repository-url>
 cd jumpserver
-
-# 一键部署
-./bootstrap.sh
+python3 bootstrap.py
 ```
 
-### 方式二：分步部署
+
+## 端口
+
+| 端口 | 说明 |
+|------|------|
+| 80 | HTTP |
+| 2222 | SSH |
+| 3306 | MySQL |
+| 6379 | Redis |
+## 运维
 
 ```bash
-# 1. 初始化环境
-./bootstrap.sh --init
-
-# 2. 启动服务
 docker compose up -d
-
-# 3. 查看状态
-docker compose ps
-```
-
-## 📋 系统要求
-
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- 系统内存: 建议 2GB+
-- 磁盘空间: 建议 10GB+
-
-## 🌐 服务端口
-
-- **80**: JumpServer Web 服务端口（HTTP）
-- **2222**: JumpServer SSH 服务端口
-- **30000-30100**: JumpServer RDP/VNC 端口范围
-- **3306**: MySQL 数据库端口
-- **6379**: Redis 缓存端口
-
-
-## 🔧 配置说明
-
-### 目录结构
-
-```
-jumpserver/
-├── bootstrap.sh          # 一体化部署脚本
-├── compose.yml           # Docker Compose 配置
-├── README.md            # 项目文档
-├── data/               # 数据目录
-├── logs/               # 日志目录
-└── config/             # 配置目录
-```
-
-### 环境变量
-
-主要的环境变量在 `compose.yml` 文件中定义，可以根据需要进行调整。
-
-## 📊 使用指南
-
-### 启动服务
-
-```bash
-# 后台启动
-docker compose up -d
-
-# 前台启动（查看日志）
-docker compose up
-```
-
-### 查看状态
-
-```bash
-# 查看服务状态
-docker compose ps
-
-# 查看服务日志
-docker compose logs -f
-
-# 查看特定服务日志
-docker compose logs -f <service-name>
-```
-
-### 停止服务
-
-```bash
-# 停止服务
 docker compose down
-
-# 停止服务并删除数据卷
-docker compose down -v
-```
-
-## 🔗 访问地址与默认密码
-
-| 用途 | 地址 / 连接 | 账号 | 密码 |
-|------|-------------|------|------|
-| Web 控制台 | http://localhost | `admin` | `ChangeMe` |
-| SSH 堡垒机 | `ssh -p 2222 admin@localhost` | `admin` | `ChangeMe` |
-| MySQL | `localhost:3306` / 库 `jumpserver` | `jumpserver` | `ruU1y_bwMiFadh7mbvLawg==` |
-| MySQL root | `localhost:3306` | `root` | `VNyupGRpS9Ah8vd3F6gpsA==` |
-| Redis | `localhost:6379` | — | `6qDCfy1WYMQwzxXhIBflig==` |
-
-Web 首次登录后需修改 `admin` 密码。以上密码定义在 `compose.yml`，生产环境请全部更换。
-
-**注意**: 使用 `jms_all` 一体化镜像，所有组件（Core、Koko、Lion、Web、Magnus）都运行在同一个容器中。
-
-
-## 🛠️ 故障排除
-
-### 常见问题
-
-1. **端口冲突**
-   - 检查端口是否被占用：`netstat -tulpn | grep <port>`
-   - 修改 `compose.yml` 中的端口映射
-
-2. **权限问题**
-   - 确保当前用户有 Docker 权限：`sudo usermod -aG docker $USER`
-   - 重新登录或重启系统
-
-3. **内存不足**
-   - 检查系统内存使用：`free -h`
-   - 调整 Docker 内存限制
-
-4. **磁盘空间不足**
-   - 检查磁盘空间：`df -h`
-   - 清理 Docker 镜像：`docker system prune -a`
-
-### 日志查看
-
-```bash
-# 查看所有服务日志
-docker compose logs
-
-# 实时查看日志
+docker compose ps
 docker compose logs -f
-
-# 查看最近100行日志
-docker compose logs --tail=100
 ```
 
-## 🔄 升级指南
-
-### 升级服务
-
-```bash
-# 1. 停止当前服务
-docker compose down
-
-# 2. 拉取最新镜像
-docker compose pull
-
-# 3. 重新启动
-docker compose up -d
-```
-
-### 备份数据
-
-```bash
-# 备份数据目录
-tar -czf backup-$(date +%Y%m%d).tar.gz data/
-
-# 备份配置文件
-cp compose.yml compose.yml.backup
-```
-
-## 📚 相关资源
-
-- [官方文档](https://docs.docker.com/compose/)
-- [Docker Hub]()
-- [GitHub 仓库]()
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request 来改进这个项目。
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](../LICENSE) 文件了解详情。
-
-## ⭐ Star History
-
-如果这个项目对你有帮助，请给它一个星标！
-
----
-
-**注意**: 首次部署时，某些服务可能需要额外的配置步骤，请参考具体服务的官方文档。
+数据目录：`./data/`。

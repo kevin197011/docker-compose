@@ -12,7 +12,7 @@ services:
       - "3306:3306"
     volumes:
       - ./data/mariadb:/var/lib/mysql
-      - ./log/mariadb:/var/log/mysql:rw
+      - ./logs/mariadb:/var/log/mysql:rw
       - ./config/mariadb/mariadb.cnf:/etc/mysql/conf.d/mariadb.cnf
     networks:
       - mariadb

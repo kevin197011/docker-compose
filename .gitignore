@@ -21,3 +21,4 @@ logs
 .cursor
 .DS_Store
 # forgejo_data
+__pycache__

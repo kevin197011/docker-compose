@@ -13,7 +13,7 @@ services:
       - ENABLE_PROMETHEUS_METRICS=true
       - UI_TRAFFIC_STATS=true
     volumes:
-      - ~/.wg-easy:/etc/wireguard
+      - ./data/wireguard:/etc/wireguard
     ports:
       - 51820:51820/udp
       - 51821:51821/tcp

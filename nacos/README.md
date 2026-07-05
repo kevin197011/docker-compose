@@ -1,19 +1,31 @@
-# Nacos Docker Compose
+# Nacos
 
-本目录用于本地快速部署 Nacos 服务。
+Nacos 配置中心与服务发现。
 
-## 使用方法
+## 部署
 
-1. 启动服务：
-   ```sh
-   ./bootstrap.sh
-   ```
-2. 访问 Nacos 控制台：
-   - http://localhost:8848/nacos
+```bash
+cd nacos
+python3 bootstrap.py
+```
 
-## 目录结构
-- compose.yml         # Docker Compose 配置
-- bootstrap.sh        # 一键启动脚本
-- data/               # Nacos 数据目录
-- logs/               # 日志目录
-- conf/               # 配置目录
+
+## 端口
+
+| 端口 | 说明 |
+|------|------|
+| 8848 | HTTP |
+| 9848 | gRPC |
+| 9849 | gRPC |
+
+控制台：http://localhost:8848/nacos
+## 运维
+
+```bash
+docker compose up -d
+docker compose down
+docker compose ps
+docker compose logs -f
+```
+
+数据目录：`./data/`。

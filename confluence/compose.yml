@@ -1,6 +1,6 @@
 services:
   confluence:
-    image: haxqer/confluence:8.5.14
+    image: haxqer/confluence:10.0.2
     container_name: confluence
     environment:
       - TZ=${TZ}
@@ -13,7 +13,7 @@ services:
       - "8090:8090"
     volumes:
       - ./data/confluence:/var/confluence
-      - ./server.xml:/opt/confluence/conf/server.xml
+      - ./config/server.xml:/opt/confluence/conf/server.xml
     restart: always
     networks:
       - confluence_net
@@ -37,9 +37,9 @@ services:
       #     - "80:80"
       #     - "443:443"
       #   volumes:
-      #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      #     - ./ssl/${SSL_CERTIFICATE}:/etc/nginx/ssl/${SSL_CERTIFICATE}:ro
-      #     - ./ssl/${SSL_CERTIFICATE_KEY}:/etc/nginx/ssl/${SSL_CERTIFICATE_KEY}:ro
+      #     - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      #     - ./config/ssl/${SSL_CERTIFICATE}:/etc/nginx/ssl/${SSL_CERTIFICATE}:ro
+      #     - ./config/ssl/${SSL_CERTIFICATE_KEY}:/etc/nginx/ssl/${SSL_CERTIFICATE_KEY}:ro
       #   environment:
       #     - CONFLUENCE_DOMAIN=${CONFLUENCE_DOMAIN}
       #   depends_on:

@@ -1,20 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
+CONTAINER=confluence
+AGENT=/var/agent/atlassian-agent.jar
+EMAIL=${EMAIL:-Hello@world.com}
+ORG=${ORG:-your-org}
+SERVER_ID=${SERVER_ID:-you-server-id-xxxx}
 
-# hack confluence
-docker exec confluence java -jar /var/agent/atlassian-agent.jar \
-    -d \
-    -p conf \
-    -m Hello@world.com \
-    -n Hello@world.com \
-    -o your-org \
-    -s you-server-id-xxxx
+hack() {
+  docker exec "$CONTAINER" java -jar "$AGENT" \
+    -d -p "$1" \
+    -m "$EMAIL" -n "$EMAIL" \
+    -o "$ORG" -s "$SERVER_ID"
+}
 
-# hack plugin example biggantt
-docker exec confluence java -jar /var/agent/atlassian-agent.jar \
-    -d \
-    -p eu.softwareplant.biggantt \
-    -m Hello@world.com \
-    -n Hello@world.com \
-    -o your-org \
-    -s you-server-id-xxxx
+# Usage:
+#   ./hack.sh                         # Confluence core
+#   ./hack.sh eu.softwareplant.biggantt  # plugin example: BigGantt
+product=${1:-conf}
+hack "$product"

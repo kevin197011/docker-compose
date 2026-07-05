@@ -171,7 +171,7 @@ services:
       - ./data/gitlab/log:/var/log/gitlab
       - ./data/gitlab/data:/var/opt/gitlab
       - ./data/gitlab/backups:/var/opt/gitlab/backups
-      - ./certs:/etc/gitlab/ssl:ro
+      - ./config/certs:/etc/gitlab/ssl:ro
     shm_size: "256m"
     ulimits:
       sigpending: 62793
@@ -206,7 +206,7 @@ services:
       TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - ./data/gitlab-runner/config:/etc/gitlab-runner
-      - ./certs/${GITLAB_SSL_CERT:-gitlab.devops.com.crt}:/etc/gitlab-runner/certs/ca.crt:ro
+      - ./config/certs/${GITLAB_SSL_CERT:-gitlab.devops.com.crt}:/etc/gitlab-runner/certs/ca.crt:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks: [gitlab_net]
     user: "0:0"

@@ -1,0 +1,23 @@
+services:
+  mongo:
+    image: mongo:4.4.4
+    container_name: mongo
+    restart: always
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - mongo_net
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  mongo_net:
+    name: mongo_net

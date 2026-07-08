@@ -46,10 +46,14 @@ def prepare() -> None:
         if not example.exists():
             sys.exit("[ERROR] .env.example missing")
         shutil.copy(example, env)
-        text = env.read_text()
-        text = text.replace("change-me-root", secrets.token_hex(16))
-        text = text.replace("change-me-db", secrets.token_hex(16))
-        env.write_text(text)
+        pwd = secrets.token_hex(16)
+        lines = []
+        for line in env.read_text().splitlines():
+            if line.startswith("POSTGRES_PASSWORD="):
+                lines.append(f"POSTGRES_PASSWORD={pwd}")
+            else:
+                lines.append(line)
+        env.write_text("\n".join(lines) + "\n")
     variables = parse_env()
     for name in ("nginx.conf", "server.xml"):
         tmpl = ROOT / "templates" / f"{name}.tmpl"

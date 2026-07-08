@@ -1,14 +1,21 @@
 services:
   confluence:
-    image: haxqer/confluence:10.0.2
+    image: haxqer/confluence:9.5.3
     container_name: confluence
     environment:
       - TZ=${TZ}
       - JVM_MINIMUM_MEMORY=4g
       - JVM_MAXIMUM_MEMORY=4g
       - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g'
+      - ATL_DB_TYPE=postgresql
+      - ATL_DB_DRIVER=org.postgresql.Driver
+      - ATL_JDBC_URL=jdbc:postgresql://pgsql:5432/${POSTGRES_DB}
+      - ATL_JDBC_USER=${POSTGRES_USER}
+      - ATL_JDBC_PASSWORD=${POSTGRES_PASSWORD}
+      - ATL_FORCE_CFG_UPDATE=true
     depends_on:
-      - pgsql
+      pgsql:
+        condition: service_healthy
     ports:
       - "8090:8090"
     volumes:
@@ -19,7 +26,7 @@ services:
       - confluence_net
   pgsql:
     image: postgres:15
-    container_name: pgsql
+    container_name: confluence-pgsql
     environment:
       - TZ=${TZ}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -28,6 +35,12 @@ services:
     volumes:
       - ./data/pgsql:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - confluence_net
       # nginx:

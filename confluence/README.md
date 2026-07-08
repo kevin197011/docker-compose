@@ -1,6 +1,6 @@
 # Confluence
 
-官方 `atlassian/confluence:latest`（Java 21）+ PostgreSQL 15，可选 Nginx SSL。
+官方 `atlassian/confluence:10.2.13`（Java 21）+ PostgreSQL 17，可选 Nginx SSL。
 
 ## 部署
 

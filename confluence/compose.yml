@@ -24,7 +24,7 @@ services:
     networks:
       - confluence_net
   confluence:
-    image: atlassian/confluence:latest
+    image: atlassian/confluence:10.2.13
     container_name: confluence
     environment:
       - TZ=${TZ}
@@ -61,7 +61,7 @@ services:
     networks:
       - confluence_net
   pgsql:
-    image: postgres:15
+    image: postgres:17
     container_name: confluence-pgsql
     environment:
       - TZ=${TZ}
@@ -69,7 +69,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - ./data/pgsql:/var/lib/postgresql/data
+      - ./data/pgsql:/var/lib/postgresql
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]

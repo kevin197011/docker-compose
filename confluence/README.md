@@ -1,6 +1,6 @@
 # Confluence
 
-官方 `atlassian/confluence:10.2.13`（Java 21）+ PostgreSQL 17，可选 Nginx SSL。
+官方 `atlassian/confluence:10.2.13`（Java 21）+ PostgreSQL 17。默认仅 HTTP `:8090`；HTTPS 由外部 Nginx 反代。`compose.yml` 内嵌 nginx 可选启用（仅 HTTP）。
 
 ## 部署
 

@@ -70,7 +70,7 @@ def ensure_upm_config() -> None:
 
 
 def prepare() -> None:
-    for d in ("data", "logs", "config", "config/ssl"):
+    for d in ("data", "logs", "config"):
         (ROOT / d).mkdir(parents=True, exist_ok=True)
     ensure_agent_jar()
     ensure_upm_config()

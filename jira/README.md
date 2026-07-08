@@ -1,6 +1,6 @@
 # Jira
 
-官方 `atlassian/jira-software:11.3.7`（Java 21）+ PostgreSQL 17，可选 Nginx SSL。
+官方 `atlassian/jira-software:11.3.7`（Java 21）+ PostgreSQL 17。默认仅 HTTP `:8080`；HTTPS 由外部 Nginx 反代。`compose.yml` 内嵌 nginx 可选启用（仅 HTTP）。
 
 ## 部署
 

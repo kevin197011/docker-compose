@@ -40,4 +40,14 @@ docker compose logs -f
 
 数据目录：`./data/`。
 
-从 MySQL 迁移或容器反复重启时：在 `compose.yml` 取消注释 `ATL_FORCE_CFG_UPDATE=true` 后重启；仍失败则清空 `./data/confluence` 和 `./data/pgsql` 重新部署。
+本地直连访问用 `http://localhost:8090`（默认 `server.xml` 不走 HTTPS 反代）。启用 Nginx 后需在 `templates/server.xml.tmpl` 切换为带 `proxyName` 的 Connector 并重新 `bootstrap.py`。
+
+安装向导中途报错（`Spring Application context has not been set`）说明 setup 状态损坏，需重置：
+
+```bash
+docker compose down
+rm -rf data/confluence/* data/pgsql/*
+python3 bootstrap.py
+```
+
+然后重新走完整安装流程，数据库 Host 填 `pgsql`，不要跳过管理员创建步骤。

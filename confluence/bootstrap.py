@@ -11,6 +11,9 @@ from pathlib import Path
 from string import Template
 
 ROOT = Path(__file__).resolve().parent
+AGENT_JAR = ROOT / "atlassian-agent.jar"
+AGENT_BUILD_JAR = ROOT.parent.parent / "atlassian-agent" / "target" / "atlassian-agent-jar-with-dependencies.jar"
+AGENT_SOURCE_IMAGE = "haxqer/confluence:9.5.3"
 
 
 def log(level: str, msg: str) -> None:
@@ -37,9 +40,45 @@ def parse_env() -> dict[str, str]:
     return env
 
 
+def ensure_agent_jar() -> None:
+    if AGENT_JAR.exists():
+        return
+    if AGENT_BUILD_JAR.exists():
+        shutil.copy(AGENT_BUILD_JAR, AGENT_JAR)
+        log("OK", f"Copied {AGENT_BUILD_JAR} -> {AGENT_JAR.name}")
+        return
+    log("INFO", f"Extracting {AGENT_JAR.name} from {AGENT_SOURCE_IMAGE}")
+    cid = subprocess.check_output(
+        ["docker", "create", AGENT_SOURCE_IMAGE], text=True
+    ).strip()
+    try:
+        subprocess.run(
+            ["docker", "cp", f"{cid}:/var/agent/atlassian-agent.jar", str(AGENT_JAR)],
+            check=True,
+        )
+    finally:
+        subprocess.run(["docker", "rm", cid], check=True)
+    log("OK", f"Created {AGENT_JAR.name}")
+
+
+def ensure_upm_config() -> None:
+    upm_dir = ROOT / "config" / "upmconfig"
+    truststore = upm_dir / "truststore"
+    props = upm_dir / "upm.properties"
+    truststore.mkdir(parents=True, exist_ok=True)
+    if not props.exists():
+        props.write_text("atlassian.upm.signature.check.disabled=true\n")
+    props.chmod(0o444)
+    upm_dir.chmod(0o755)
+    truststore.chmod(0o755)
+    log("OK", f"UPM config at {upm_dir.relative_to(ROOT)}")
+
+
 def prepare() -> None:
     for d in ("data", "logs", "config", "config/ssl"):
         (ROOT / d).mkdir(parents=True, exist_ok=True)
+    ensure_agent_jar()
+    ensure_upm_config()
     env = ROOT / ".env"
     if not env.exists():
         example = ROOT / ".env.example"
@@ -55,7 +94,7 @@ def prepare() -> None:
                 lines.append(line)
         env.write_text("\n".join(lines) + "\n")
     variables = parse_env()
-    for name in ("nginx.conf", "server.xml"):
+    for name in ("nginx.conf",):
         tmpl = ROOT / "templates" / f"{name}.tmpl"
         if tmpl.exists():
             (ROOT / "config" / name).write_text(Template(tmpl.read_text()).safe_substitute(variables))

@@ -1,26 +1,62 @@
 services:
+  upm-init:
+    image: alpine:3.20
+    container_name: confluence-upm-init
+    user: "0:0"
+    volumes:
+      - upmconfig:/opt/upmconfig
+      - ./config/upmconfig:/src:ro
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/upmconfig/truststore
+        cp /src/upm.properties /opt/upmconfig/upm.properties
+        if [ -d /src/truststore ]; then
+          cp -r /src/truststore/. /opt/upmconfig/truststore/
+        fi
+        chown -R 0:0 /opt/upmconfig
+        chmod 755 /opt/upmconfig /opt/upmconfig/truststore
+        chmod 444 /opt/upmconfig/upm.properties
+        find /opt/upmconfig/truststore -type f -exec chmod 444 {} + 2>/dev/null || true
+    restart: "no"
+    networks:
+      - confluence_net
   confluence:
-    image: haxqer/confluence:9.5.3
+    image: atlassian/confluence:latest
     container_name: confluence
     environment:
       - TZ=${TZ}
       - JVM_MINIMUM_MEMORY=4g
       - JVM_MAXIMUM_MEMORY=4g
-      - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g'
+      - JVM_CODE_CACHE_ARGS=-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=4g
       - ATL_DB_TYPE=postgresql
       - ATL_DB_DRIVER=org.postgresql.Driver
       - ATL_JDBC_URL=jdbc:postgresql://pgsql:5432/${POSTGRES_DB}
       - ATL_JDBC_USER=${POSTGRES_USER}
       - ATL_JDBC_PASSWORD=${POSTGRES_PASSWORD}
-      - ATL_FORCE_CFG_UPDATE=true
+      # 勿长期 true：每次启动会重写 confluence.cfg.xml 并生成新 Server ID，导致 license 失效
+      - ATL_FORCE_CFG_UPDATE=false
+      - ATLASSIAN_DIR=/opt/atlassian/confluence/confluence/WEB-INF/lib
+      - JVM_SUPPORT_RECOMMENDED_ARGS=-javaagent:/var/agent/atlassian-agent.jar -Datlassian.upm.configuration.directory=/opt/upmconfig
+      # Nginx 反代时取消注释：
+      # - ATL_PROXY_NAME=${CONFLUENCE_DOMAIN}
+      # - ATL_PROXY_PORT=443
+      # - ATL_TOMCAT_SCHEME=https
+      # - ATL_TOMCAT_SECURE=true
     depends_on:
       pgsql:
         condition: service_healthy
+      upm-init:
+        condition: service_completed_successfully
     ports:
       - "8090:8090"
+      - "8091:8091"
     volumes:
-      - ./data/confluence:/var/confluence
-      - ./config/server.xml:/opt/confluence/conf/server.xml
+      - ./data/confluence:/var/atlassian/application-data/confluence
+      - ./atlassian-agent.jar:/var/agent/atlassian-agent.jar:ro
+      - upmconfig:/opt/upmconfig:ro
     restart: always
     networks:
       - confluence_net
@@ -63,3 +99,6 @@ services:
 networks:
   confluence_net:
     driver: bridge
+
+volumes:
+  upmconfig:

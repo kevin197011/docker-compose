@@ -1,0 +1,16 @@
+name: example
+
+topology:
+  nodes:
+    l1:
+      kind: linux
+      image: alpine:3.20
+      exec:
+        - ash -c "ip link set eth1 up"
+    l2:
+      kind: linux
+      image: alpine:3.20
+      exec:
+        - ash -c "ip link set eth1 up"
+  links:
+    - endpoints: ["l1:eth1", "l2:eth1"]

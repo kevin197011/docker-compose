@@ -1,0 +1,17 @@
+services:
+  clab:
+    image: ${CLAB_IMAGE:-ghcr.io/srl-labs/clab:latest}
+    container_name: clab
+    privileged: true
+    network_mode: host
+    pid: host
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/netns:/var/run/netns
+      - /etc/hosts:/etc/hosts
+      - /var/lib/docker/containers:/var/lib/docker/containers
+      - .:/workspace
+    command: bash

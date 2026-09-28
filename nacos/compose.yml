@@ -1,13 +1,13 @@
 services:
   nacos:
-    image: nacos/nacos-server:v2.5.1
+    image: nacos/nacos-server:v3.2.4
     container_name: nacos-server
     env_file:
       - .env
     ports:
+      - "8080:8080"
       - "8848:8848"
       - "9848:9848"
-      - "9849:9849"
     volumes:
       - ./data/logs:/home/nacos/logs
       - ./data/data:/home/nacos/data

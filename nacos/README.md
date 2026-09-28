@@ -1,6 +1,6 @@
 # Nacos
 
-Nacos 配置中心与服务发现。
+Nacos 3.2.4 配置中心与服务发现（`nacos/nacos-server`，standalone + Derby）。
 
 ## 部署
 
@@ -14,11 +14,13 @@ python3 bootstrap.py
 
 | 端口 | 说明 |
 |------|------|
-| 8848 | HTTP |
+| 8080 | 控制台 |
+| 8848 | HTTP API |
 | 9848 | gRPC |
-| 9849 | gRPC |
 
-控制台：http://localhost:8848/nacos
+控制台：http://localhost:8080
+
+从 2.x 升级会不兼容旧 Derby 数据，需先停掉再清空 `./data/` 后启动。
 ## 运维
 
 ```bash

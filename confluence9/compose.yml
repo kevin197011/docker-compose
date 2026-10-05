@@ -1,0 +1,51 @@
+# Confluence 9.0.2 (haxqer) @ /opt/wiki — devops-wiki-01 (10.173.32.9)
+# Mirror layout of /opt/confluence on devops-confluence-01.
+
+services:
+  pgsql:
+    image: postgres:13
+    container_name: wiki-pgsql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-confluence}
+      POSTGRES_USER: ${POSTGRES_USER:-confluence}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - ./data/pgsql:/var/lib/postgresql/data
+    networks:
+      - wiki_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  confluence:
+    image: haxqer/confluence:9.0.2
+    container_name: wiki
+    restart: unless-stopped
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      ATL_FORCE_CFG_UPDATE: ${ATL_FORCE_CFG_UPDATE:-false}
+    ports:
+      - "${CONFLUENCE_HTTP_PORT:-8090}:8090"
+      - "${CONFLUENCE_SYNC_PORT:-8091}:8091"
+    volumes:
+      - ./data/confluence:/var/confluence
+      - ./${CONFLUENCE_SERVER_XML:-config/server.xml}:/opt/confluence/conf/server.xml:ro
+    networks:
+      - wiki_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8090/status >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
+
+networks:
+  wiki_net:
+    name: wiki_net

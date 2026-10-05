@@ -1,0 +1,6 @@
+.env
+data/
+logs/
+atlassian-agent.jar
+config/nginx.conf
+config/server.xml.local
